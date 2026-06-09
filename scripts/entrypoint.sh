@@ -90,6 +90,27 @@ RESET_PID=$!
 trap 'echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Shutting down..." | tee -a "$LOG_FILE"; kill $RESET_PID 2>/dev/null || true; exit 0' SIGTERM SIGINT
 
 # ============================================
+# Start nginx reverse proxy (background)
+# ============================================
+if [ -d "/opt/aegisgate-demo/nginx" ] && [ -f "/opt/aegisgate-demo/nginx/nginx.conf" ]; then
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Starting nginx reverse proxy on port 80..." | tee -a "$LOG_FILE"
+    # Check if nginx is installed (it may not be in the distroless base image)
+    if command -v nginx >/dev/null 2>&1; then
+        # Test the config first
+        nginx -t -c /opt/aegisgate-demo/nginx/nginx.conf 2>&1 | tee -a "$LOG_FILE" || \
+            echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] WARNING: nginx config test failed" | tee -a "$LOG_FILE"
+        # Start nginx in the background
+        nginx -c /opt/aegisgate-demo/nginx/nginx.conf 2>&1 | tee -a "$LOG_FILE" &
+        NGINX_PID=$!
+        echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] nginx PID: $NGINX_PID" | tee -a "$LOG_FILE"
+    else
+        echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] WARNING: nginx is not installed in this image" | tee -a "$LOG_FILE"
+        echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Without nginx, the platform will be exposed directly on port 8080" | tee -a "$LOG_FILE"
+        echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] For full demo features (signup, banner injection), use a different image with nginx" | tee -a "$LOG_FILE"
+    fi
+fi
+
+# ============================================
 # Start the email signup server (background)
 # ============================================
 if [ -d "/opt/aegisgate-demo/email-signup" ]; then

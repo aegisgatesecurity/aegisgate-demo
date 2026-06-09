@@ -33,10 +33,12 @@ services:
     branch: main
     autoDeploy: true  # Re-deploy on every push to main
     healthCheckPath: /health
-    # Container exposes these ports (we use 8080 as the public one)
-    # Render only exposes the port we tell it to via port
-    # 8080: main AegisGate proxy (public)
-    port: 8080
+    # Container exposes port 80 (nginx reverse proxy)
+    # nginx routes:
+    #   /              → signup server (port 8083)
+    #   /platform/*    → AegisGate platform (port 8080)
+    #   /health        → AegisGate platform health endpoint
+    port: 80
     envVars:
       # === Demo mode configuration ===
       - key: AEGISGATE_MODE
