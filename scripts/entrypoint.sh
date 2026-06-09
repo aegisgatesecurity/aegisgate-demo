@@ -49,6 +49,24 @@ if [ -d "$SEED_DIR" ] && [ -z "$(ls -A $DATA_DIR/seed 2>/dev/null)" ]; then
 fi
 
 # ============================================
+# Run the seed loader to translate JSON → AuditEntry format
+# ============================================
+# The platform's persistence layer (opsec.FileStorageBackend) expects
+# individual JSON files per audit entry, with the AuditEntry schema.
+# The seed_loader.py translates our marketing-friendly JSON into that format.
+SEED_LOADER="/opt/aegisgate-demo/scripts/seed_loader.py"
+AUDIT_DIR="/data/audit"
+
+if [ -x "$SEED_LOADER" ] || [ -f "$SEED_LOADER" ]; then
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Running seed loader to populate audit log..." | tee -a "$LOG_FILE"
+    python3 "$SEED_LOADER" \
+        --source "$DATA_DIR/seed" \
+        --target "$AUDIT_DIR" \
+        2>&1 | tee -a "$LOG_FILE" || true
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Seed loader complete" | tee -a "$LOG_FILE"
+fi
+
+# ============================================
 # Set up daily reset cron job
 # ============================================
 # Reset demo state every $RESET_HOURS hours
@@ -88,15 +106,20 @@ fi
 # ============================================
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Starting AegisGate in demo mode..." | tee -a "$LOG_FILE"
 
-# Note: We need the platform to have a --mode=demo flag. If it doesn't,
-# we emulate demo mode by:
-#   1. Pointing target URL to a mock service (httpbin.org)
-#   2. Using a read-only license key
-#   3. Setting stricter rate limits
+# The platform binary supports --mode=demo starting in v3.3.0-beta.2.
+# In demo mode, the platform:
+#   - Skips license enforcement (runs as Community tier)
+#   - Forces the target to httpbin.org (mock upstream, no real LLM)
+#   - Applies read-only safety restrictions to the admin dashboard
+#   - Sets stricter rate limits (100 req/hour per visitor)
+#
+# We pass the --mode flag last so the help text in case of an unknown flag
+# is still readable. We also pass --target explicitly to be defensive
+# in case --mode=demo doesn't fully override the target (older versions).
 exec "$PLATFORM_BINARY" \
-    --mode=demo \
     --config=/opt/aegisgate-demo/demo-config.yaml \
-    --target=http://httpbin.org \
-    --tier=developer \
+    --tier=community \
     --embedded-mcp \
+    --target=http://httpbin.org:80 \
+    --mode=demo \
     2>&1 | tee -a "$LOG_FILE"

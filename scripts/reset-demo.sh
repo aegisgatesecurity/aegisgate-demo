@@ -27,6 +27,16 @@ echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)]   Re-seeding data..." | tee -a "$LOG_FILE
 mkdir -p "$DATA_DIR/seed"
 cp -r "$SEED_SOURCE"/* "$DATA_DIR/seed/" 2>/dev/null || true
 
+# 2b. Re-run the seed loader to repopulate the audit log
+SEED_LOADER="/opt/aegisgate-demo/scripts/seed_loader.py"
+if [ -f "$SEED_LOADER" ]; then
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)]   Re-running seed loader..." | tee -a "$LOG_FILE"
+    python3 "$SEED_LOADER" \
+        --source "$DATA_DIR/seed" \
+        --target "$DATA_DIR/audit" \
+        2>/dev/null || true
+fi
+
 # 3. Re-initialize signups directory (preserves any prior signups for the day)
 mkdir -p "$DATA_DIR/signups"
 

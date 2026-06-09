@@ -1,0 +1,104 @@
+# AegisGate Demo - Default Configuration
+# =========================================
+#
+# This is a minimal config for the demo environment.
+# The platform reads this on startup to know which components to enable
+# and how to configure them.
+#
+# For production configs, see the platform's official documentation at
+# https://aegisgatesecurity.io/docs/configuration/
+
+# ==========================================
+# General settings
+# ==========================================
+version: "1"
+name: "AegisGate Demo"
+description: "Public demo environment (sandboxed, no real LLM)"
+
+# ==========================================
+# License settings
+# ==========================================
+# Demo mode: no license required (uses built-in dev license)
+# The --mode=demo flag handles this automatically, but we set
+# it here as a fallback for older versions of the platform.
+license:
+  required: false
+  tier: "community"  # Always community in demo
+
+# ==========================================
+# Proxy settings
+# ==========================================
+proxy:
+  enabled: true
+  port: 8080
+  # In demo mode, the platform overrides this to http://httpbin.org:80
+  # We set it here for clarity.
+  target_url: "http://httpbin.org:80"
+  # Strict rate limits for the demo
+  rate_limit:
+    requests_per_hour_per_ip: 100
+    burst: 10
+
+# ==========================================
+# MCP server settings
+# ==========================================
+mcp:
+  enabled: true
+  port: 8081
+  # In demo mode, the platform uses 5 sample MCP tools
+  # (filesystem, web_search, calculator, datetime, echo)
+  # These are sandboxed and read-only by default.
+  tool_policy: "demo-strict"
+
+# ==========================================
+# Dashboard settings
+# ==========================================
+dashboard:
+  enabled: true
+  port: 8443
+  # In demo mode, the dashboard is READ-ONLY.
+  # All write operations are disabled.
+  read_only: true
+  # Show the DEMO MODE banner
+  show_demo_banner: true
+
+# ==========================================
+# Compliance settings
+# ==========================================
+compliance:
+  enabled: true
+  port: 8082
+  # Show the pre-run EU AI Act scan (82 controls)
+  show_seed_data: true
+  eu_ai_act:
+    enabled: true
+    show_all_controls: true  # Show all 82 controls in the demo
+
+# ==========================================
+# Logging
+# ==========================================
+logging:
+  level: "info"  # info, warn, error, debug
+  format: "text"  # text or json
+  output: "stdout"
+
+# ==========================================
+# Persistence
+# ==========================================
+persistence:
+  enabled: true
+  data_dir: "/data"
+  # In demo mode, state is auto-reset every 24 hours
+  # (handled by the entrypoint.sh cron, not by the platform itself)
+  auto_reset: false  # The platform itself doesn't reset; the entrypoint does
+
+# ==========================================
+# Security
+# ==========================================
+security:
+  # Disable features that don't make sense in demo mode
+  fail_closed: true
+  require_signed_requests: false
+  # Stricter in demo mode
+  max_request_size: "1MB"
+  request_timeout: "30s"
