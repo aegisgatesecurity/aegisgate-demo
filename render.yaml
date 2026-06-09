@@ -1,0 +1,76 @@
+# AegisGate Demo - Render.com Blueprint
+# ==========================================
+#
+# This file declares the demo environment for Render.com's
+# "Infrastructure as Code" (Blueprints) feature.
+#
+# How it works:
+#   1. Sign in to Render.com with GitHub
+#   2. New + → Blueprint
+#   3. Select this repo (aegisgate-demo)
+#   4. Render reads this file and provisions the services
+#   5. Add custom domain: demo.aegisgatesecurity.io
+#   6. Render auto-provisions Let's Encrypt SSL
+#
+# Docs: https://docs.render.com/blueprint-spec
+
+services:
+  # ============================================
+  # AegisGate Demo Platform (Web Service)
+  # ============================================
+  - type: web
+    name: aegisgate-demo
+    runtime: docker
+    dockerfilePath: ./Dockerfile.demo
+    plan: free  # Free tier: sleeps after 15min inactivity, 750 hrs/mo
+    region: oregon
+    branch: main
+    autoDeploy: true  # Re-deploy on every push to main
+    healthCheckPath: /health
+    # Container exposes these ports (we use 8080 as the public one)
+    # Render only exposes the port we tell it to via port
+    # 8080: main AegisGate proxy (public)
+    port: 8080
+    envVars:
+      # === Demo mode configuration ===
+      - key: AEGISGATE_MODE
+        value: demo
+      - key: AEGISGATE_DEMO_RESET_HOURS
+        value: 24
+      - key: AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR
+        value: 100
+      - key: AEGISGATE_DEMO_RANDOM_SEED
+        value: aegisgate-demo-2026-06
+      # === Platform configuration ===
+      - key: AEGISGATE_LOG_LEVEL
+        value: info
+      - key: AEGISGATE_TIER
+        value: developer
+      - key: AEGISGATE_TARGET
+        value: http://httpbin.org:80
+      - key: AEGISGATE_EMBEDDED_MCP
+        value: "true"
+      # === Email signup (set this to forward signups to your email service) ===
+      # Get a free webhook at https://webhook.site or use Mailgun/SendGrid
+      - key: EMAIL_WEBHOOK_URL
+        sync: false  # Set this in the Render dashboard (not committed)
+      # === Cloudflare Turnstile (anti-bot, optional) ===
+      - key: CF_TURNSTILE_SITE_KEY
+        sync: false
+      - key: CF_TURNSTILE_SECRET_KEY
+        sync: false
+    # Custom domains (auto-provisions SSL)
+    customDomains:
+      - domain: demo.aegisgatesecurity.io
+        type: cname
+    # Resource limits
+    disk:
+      name: demo-data
+      mountPath: /data
+      sizeGB: 1  # Free tier max
+    # Auto-suspend on free tier (sleeps after 15min inactivity)
+    # This is the default for the free plan — explicitly noted for clarity
+    # When the demo is accessed, Render wakes it up (~30s cold start)
+    scaling:
+      minInstances: 0  # Free tier
+      maxInstances: 1  # Free tier

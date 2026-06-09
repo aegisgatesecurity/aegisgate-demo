@@ -1,0 +1,91 @@
+# AegisGate Demo - Docker Compose (Local Development)
+# =====================================================
+#
+# Use this file for local testing of the demo environment.
+# For production, use render.yaml (Render.com Blueprint) instead.
+#
+# Usage:
+#   docker compose -f docker-compose.demo.yml up -d
+#   docker compose -f docker-compose.demo.yml down
+#   docker compose -f docker-compose.demo.yml logs -f
+
+version: "3.8"
+
+services:
+  # ============================================
+  # AegisGate Demo Platform
+  # ============================================
+  aegisgate-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.demo
+    image: aegisgate-demo:local
+    container_name: aegisgate-demo
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # AegisGate proxy (public)
+      - "8081:8081"   # AegisGuard MCP server (public)
+      - "8082:8082"   # Compliance API (public read-only)
+      - "8443:8443"   # Admin dashboard (public read-only)
+    environment:
+      # Demo mode
+      - AEGISGATE_MODE=demo
+      - AEGISGATE_DEMO_RESET_HOURS=24
+      - AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR=100
+      - AEGISGATE_DEMO_RANDOM_SEED=aegisgate-demo-2026-06
+      # Platform config
+      - AEGISGATE_LOG_LEVEL=info
+      - AEGISGATE_TIER=developer
+      - AEGISGATE_TARGET=http://httpbin.org:80
+      - AEGISGATE_EMBEDDED_MCP=true
+      # Email signup webhook (optional)
+      # - EMAIL_WEBHOOK_URL=https://your-webhook-service.com/aegisgate-demo-signups
+    volumes:
+      # Persistent demo state
+      - demo-data:/data
+      # Mount local seed-data for live editing (development)
+      - ./seed-data:/opt/aegisgate-demo/seed-data:ro
+      - ./email-signup:/opt/aegisgate-demo/email-signup:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - aegisgate-demo-net
+    # Resource limits (for free tier hosting)
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+
+  # ============================================
+  # Cloudflare Tunnel (optional, for production)
+  # ============================================
+  # Uncomment to expose via Cloudflare Tunnel locally
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   command: tunnel --no-autoupdate
+  #   environment:
+  #     - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+  #   networks:
+  #     - aegisgate-demo-net
+  #   depends_on:
+  #     aegisgate-demo:
+  #       condition: service_healthy
+
+volumes:
+  demo-data:
+    name: aegisgate-demo-data
+    # Persists across container restarts
+    # Wiped only by the daily reset cron OR manual intervention
+
+networks:
+  aegisgate-demo-net:
+    name: aegisgate-demo-net
+    driver: bridge

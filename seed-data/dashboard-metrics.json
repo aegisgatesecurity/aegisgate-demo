@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "data_source": "synthetic",
+    "note": "This is MOCK data for the AegisGate demo. Not real production metrics. Generated for visualization purposes only.",
+    "time_range": "Last 24 hours",
+    "timezone": "UTC",
+    "interval_minutes": 60
+  },
+  "summary": {
+    "total_requests": 18472,
+    "total_threats_detected": 1247,
+    "total_threats_blocked": 1189,
+    "total_threats_warned": 58,
+    "total_users_active": 312,
+    "total_mcp_tool_calls": 8932,
+    "uptime_percentage": 99.97,
+    "p50_latency_ms": 12,
+    "p95_latency_ms": 87,
+    "p99_latency_ms": 234
+  },
+  "hourly_requests": [
+    {"hour": "00:00", "requests": 234, "threats": 12, "users_active": 8},
+    {"hour": "01:00", "requests": 187, "threats": 8, "users_active": 5},
+    {"hour": "02:00", "requests": 145, "threats": 23, "users_active": 4},
+    {"hour": "03:00", "requests": 98, "threats": 18, "users_active": 3},
+    {"hour": "04:00", "requests": 112, "threats": 7, "users_active": 2},
+    {"hour": "05:00", "requests": 156, "threats": 4, "users_active": 3},
+    {"hour": "06:00", "requests": 234, "threats": 11, "users_active": 8},
+    {"hour": "07:00", "requests": 412, "threats": 28, "users_active": 18},
+    {"hour": "08:00", "requests": 723, "threats": 45, "users_active": 32},
+    {"hour": "09:00", "requests": 1145, "threats": 78, "users_active": 47},
+    {"hour": "10:00", "requests": 1456, "threats": 102, "users_active": 58},
+    {"hour": "11:00", "requests": 1678, "threats": 134, "users_active": 67},
+    {"hour": "12:00", "requests": 1534, "threats": 121, "users_active": 64},
+    {"hour": "13:00", "requests": 1612, "threats": 138, "users_active": 71},
+    {"hour": "14:00", "requests": 1489, "threats": 109, "users_active": 62},
+    {"hour": "15:00", "requests": 1345, "threats": 96, "users_active": 56},
+    {"hour": "16:00", "requests": 1156, "threats": 87, "users_active": 48},
+    {"hour": "17:00", "requests": 987, "threats": 64, "users_active": 38},
+    {"hour": "18:00", "requests": 723, "threats": 45, "users_active": 28},
+    {"hour": "19:00", "requests": 534, "threats": 32, "users_active": 21},
+    {"hour": "20:00", "requests": 412, "threats": 28, "users_active": 17},
+    {"hour": "21:00", "requests": 298, "threats": 19, "users_active": 12},
+    {"hour": "22:00", "requests": 234, "threats": 14, "users_active": 8},
+    {"hour": "23:00", "requests": 178, "threats": 11, "users_active": 6}
+  ],
+  "threat_categories": {
+    "prompt_injection": 412,
+    "jailbreak": 234,
+    "data_exfiltration": 189,
+    "mcp_security": 156,
+    "excessive_agency": 98,
+    "evasion": 78,
+    "identity_spoofing": 45,
+    "denial_of_service": 23,
+    "compliance_violation": 8,
+    "anomaly": 4
+  },
+  "top_threat_techniques": [
+    {"rank": 1, "technique": "Direct prompt injection (AML.T0051)", "count": 312, "blocked": 312},
+    {"rank": 2, "technique": "PII exposure in response (AML.T0024)", "count": 189, "blocked": 187, "warned": 2},
+    {"rank": 3, "technique": "Jailbreak attempts (DAN-style)", "count": 234, "blocked": 234},
+    {"rank": 4, "technique": "MCP tool misuse", "count": 156, "blocked": 156},
+    {"rank": 5, "technique": "Indirect prompt injection", "count": 100, "blocked": 100},
+    {"rank": 6, "technique": "Token smuggling (encoding bypass)", "count": 78, "blocked": 78},
+    {"rank": 7, "technique": "Excessive agency / bulk operations", "count": 98, "blocked": 78, "warned": 20},
+    {"rank": 8, "technique": "A2A identity spoofing", "count": 45, "blocked": 45},
+    {"rank": 9, "technique": "Cross-protocol correlation attack", "count": 23, "blocked": 23},
+    {"rank": 10, "technique": "Resource exhaustion", "count": 23, "blocked": 23}
+  ],
+  "top_users": [
+    {"user_id": "demo-user-001", "requests": 1247, "threats": 23, "trust_score": 87},
+    {"user_id": "demo-user-002", "requests": 856, "threats": 12, "trust_score": 92},
+    {"user_id": "demo-user-003", "requests": 723, "threats": 45, "trust_score": 68},
+    {"user_id": "demo-user-004", "requests": 612, "threats": 8, "trust_score": 95},
+    {"user_id": "demo-user-005", "requests": 489, "threats": 19, "trust_score": 81}
+  ],
+  "mcp_tool_usage": {
+    "filesystem.read_file": 2456,
+    "filesystem.list_directory": 1234,
+    "web_search.search": 456,
+    "calculator.evaluate": 2156,
+    "datetime.now": 1456,
+    "echo.echo": 1174
+  },
+  "latency_distribution": {
+    "< 10ms": 9123,
+    "10-50ms": 6234,
+    "50-100ms": 1879,
+    "100-500ms": 978,
+    "500ms-1s": 187,
+    "> 1s": 71
+  },
+  "compliance_status": {
+    "eu_ai_act": {"score": 0.89, "status": "mostly_compliant", "controls_pass": 73, "controls_total": 82},
+    "mitre_atlas": {"score": 0.95, "status": "compliant", "techniques_covered": 66, "techniques_total": 66},
+    "hipaa": {"score": 0.92, "status": "compliant"},
+    "gdpr": {"score": 0.88, "status": "mostly_compliant"},
+    "pci_dss": {"score": 0.85, "status": "mostly_compliant"},
+    "soc2": {"score": 0.90, "status": "compliant"},
+    "iso_27001": {"score": 0.78, "status": "needs_attention"},
+    "iso_42001": {"score": 0.82, "status": "needs_attention"}
+  }
+}

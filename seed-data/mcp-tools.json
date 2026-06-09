@@ -1,0 +1,187 @@
+[
+  {
+    "id": "mcp-tool-001",
+    "name": "filesystem",
+    "version": "1.0.0",
+    "description": "Read and write files within a sandboxed directory. Read-only by default; write requires explicit user approval.",
+    "category": "filesystem",
+    "risk_level": "low",
+    "registered_by": "demo@aegisgatesecurity.io",
+    "registered_at": "2026-06-09T12:00:00Z",
+    "status": "active",
+    "permissions": {
+      "read": true,
+      "write": false,
+      "execute": false,
+      "sandbox_path": "/tmp/aegisgate-demo-fs"
+    },
+    "capabilities": [
+      {
+        "name": "read_file",
+        "description": "Read the contents of a file within the sandbox",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "Path to file (relative to sandbox)"}
+          },
+          "required": ["path"]
+        },
+        "rate_limit": "100 requests/hour",
+        "max_file_size": "1MB"
+      },
+      {
+        "name": "list_directory",
+        "description": "List files in a directory within the sandbox",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "Directory path (relative to sandbox)"}
+          }
+        },
+        "rate_limit": "100 requests/hour"
+      }
+    ],
+    "usage_last_24h": {
+      "read_file": 47,
+      "list_directory": 23
+    },
+    "notes": "Demo tool. Sandboxed to /tmp/aegisgate-demo-fs. Write operations disabled for safety."
+  },
+  {
+    "id": "mcp-tool-002",
+    "name": "web_search",
+    "version": "1.0.0",
+    "description": "Search the web for information. Returns top 5 results. Read-only.",
+    "category": "network",
+    "risk_level": "low",
+    "registered_by": "demo@aegisgatesecurity.io",
+    "registered_at": "2026-06-09T12:05:00Z",
+    "status": "active",
+    "permissions": {
+      "network_egress": true,
+      "sandboxed_domains": ["duckduckgo.com", "html.duckduckgo.com"]
+    },
+    "capabilities": [
+      {
+        "name": "search",
+        "description": "Search the web and return top 5 results",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {"type": "string", "description": "Search query"}
+          },
+          "required": ["query"]
+        },
+        "rate_limit": "20 requests/hour",
+        "max_results": 5
+      }
+    ],
+    "usage_last_24h": {
+      "search": 18
+    },
+    "notes": "Demo tool. Uses DuckDuckGo (privacy-focused). Domain allowlist enforced by AegisGate."
+  },
+  {
+    "id": "mcp-tool-003",
+    "name": "calculator",
+    "version": "1.0.0",
+    "description": "Perform basic arithmetic operations. No network access, no file system access, no side effects.",
+    "category": "compute",
+    "risk_level": "minimal",
+    "registered_by": "demo@aegisgatesecurity.io",
+    "registered_at": "2026-06-09T12:10:00Z",
+    "status": "active",
+    "permissions": {
+      "network_egress": false,
+      "filesystem": false,
+      "compute_only": true
+    },
+    "capabilities": [
+      {
+        "name": "evaluate",
+        "description": "Evaluate a basic arithmetic expression",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "expression": {"type": "string", "description": "Arithmetic expression (e.g., '2 + 2 * 3')"}
+          },
+          "required": ["expression"]
+        },
+        "rate_limit": "unlimited",
+        "safety": "Expression is parsed and evaluated in a sandboxed environment. No function calls, no imports, no side effects."
+      }
+    ],
+    "usage_last_24h": {
+      "evaluate": 156
+    },
+    "notes": "Demo tool. Most-used tool. Pure compute, no security risk."
+  },
+  {
+    "id": "mcp-tool-004",
+    "name": "datetime",
+    "version": "1.0.0",
+    "description": "Get current date and time in various formats and timezones.",
+    "category": "system",
+    "risk_level": "minimal",
+    "registered_by": "demo@aegisgatesecurity.io",
+    "registered_at": "2026-06-09T12:15:00Z",
+    "status": "active",
+    "permissions": {
+      "network_egress": false,
+      "filesystem": false,
+      "read_only": true
+    },
+    "capabilities": [
+      {
+        "name": "now",
+        "description": "Get current date and time",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "timezone": {"type": "string", "description": "IANA timezone (e.g., 'UTC', 'America/New_York'). Default: UTC", "default": "UTC"},
+            "format": {"type": "string", "enum": ["iso8601", "unix", "human"], "default": "iso8601"}
+          }
+        },
+        "rate_limit": "unlimited"
+      }
+    ],
+    "usage_last_24h": {
+      "now": 89
+    },
+    "notes": "Demo tool. Safe and useful for date-based queries."
+  },
+  {
+    "id": "mcp-tool-005",
+    "name": "echo",
+    "version": "1.0.0",
+    "description": "Echo back the input. Useful for testing and debugging. No side effects.",
+    "category": "utility",
+    "risk_level": "minimal",
+    "registered_by": "demo@aegisgatesecurity.io",
+    "registered_at": "2026-06-09T12:20:00Z",
+    "status": "active",
+    "permissions": {
+      "network_egress": false,
+      "filesystem": false,
+      "compute_only": true
+    },
+    "capabilities": [
+      {
+        "name": "echo",
+        "description": "Return the input as-is",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "message": {"type": "string", "description": "Message to echo"}
+          },
+          "required": ["message"]
+        },
+        "rate_limit": "unlimited"
+      }
+    ],
+    "usage_last_24h": {
+      "echo": 234
+    },
+    "notes": "Demo tool. Most-used tool (used in the playground for testing). Pure passthrough, no risk."
+  }
+]

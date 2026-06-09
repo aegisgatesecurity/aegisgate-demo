@@ -1,0 +1,90 @@
+/* AegisGate Demo - Persistent DEMO MODE Banner */
+/* ============================================== */
+/* This file is injected into every page of the    */
+/* AegisGate platform via nginx sub_filter.         */
+/* It adds a persistent "DEMO MODE" badge in the   */
+/* top-right corner of every page.                  */
+
+.demo-mode-banner {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 999999;
+    background: linear-gradient(135deg, #003399 0%, #FFD700 100%);
+    color: #fff;
+    padding: 8px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-bottom-left-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.demo-mode-banner:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.demo-mode-banner-icon {
+    margin-right: 6px;
+    font-size: 14px;
+}
+
+/* Adjust body padding to account for the banner */
+body {
+    padding-top: 32px !important;
+}
+
+/* Banner content panel (hidden by default) */
+.demo-mode-info {
+    position: fixed;
+    top: 36px;
+    right: 8px;
+    z-index: 999998;
+    background: rgba(22, 27, 34, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 320px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    color: #c9d1d9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: none;
+}
+
+.demo-mode-info.show {
+    display: block;
+}
+
+.demo-mode-info h3 {
+    color: #FFD700;
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.demo-mode-info ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.demo-mode-info li {
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.demo-mode-info a {
+    color: #00ADD8;
+    text-decoration: none;
+}
+
+.demo-mode-info a:hover {
+    text-decoration: underline;
+}

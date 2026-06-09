@@ -1,0 +1,135 @@
+# AegisGate Demo Environment - Git Ignore
+# =========================================
+#
+# This is a SEPARATE repository from the main platform code
+# (aegisgate-platform) and the website (aegisgate-site).
+#
+# What's tracked:
+#   - Dockerfile.demo (custom build for demo)
+#   - docker-compose.demo.yml (compose with sample data)
+#   - render.yaml (Render.com Blueprint)
+#   - seed-data/ (sample threats, MCP tools, compliance scans)
+#   - email-signup/ (signup form + storage)
+#   - README.md (demo documentation)
+#   - LICENSE (Apache 2.0, matching the platform)
+#
+# What's NOT tracked:
+#   - .env files (any environment-specific config)
+#   - runtime data (logs, SQLite databases, state)
+#   - IDE/editor files
+#   - rendered/demo-output (build artifacts)
+#   - email signup submissions (privacy)
+#   - secrets and credentials
+
+# =========================================
+# Environment files
+# =========================================
+.env
+.env.*
+!.env.example
+*.env.local
+*.env.production
+*.env.development
+
+# =========================================
+# Runtime data (demo state)
+# =========================================
+data/
+runtime/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+!logs/.gitkeep
+
+# =========================================
+# Email signup data (PII — never commit)
+# =========================================
+email-signup/data/
+email-signup/submissions/
+signups/
+*.csv
+!email-signup/.gitkeep
+!signups/.gitkeep
+
+# =========================================
+# Build artifacts
+# =========================================
+demo-output/
+build/
+dist/
+*.tar
+*.tar.gz
+*.zip
+
+# =========================================
+# Docker
+# =========================================
+docker-compose.override.yml
+.docker/
+
+# =========================================
+# Node.js (if we add a frontend later)
+# =========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================================
+# IDEs and editors
+# =========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# =========================================
+# OS files
+# =========================================
+.Trash-*
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+
+# =========================================
+# Backup files
+# =========================================
+*.bak
+*.backup
+*.old
+*.orig
+*.md.bak
+*.md.v*-backup
+
+# =========================================
+# Test artifacts
+# =========================================
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+playwright-report/
+
+# =========================================
+# Render.com
+# =========================================
+.render/
+.render.yml.bak
+
+# =========================================
+# Misc
+# =========================================
+*.pid
+*.seed
+*.pid.lock
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AegisGate Demo — Sign In</title>
+    <meta name="description" content="Sign in to access the AegisGate live demo environment.">
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0c10 0%, #161b22 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 40px;
+        }
+        .demo-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #003399 0%, #FFD700 100%);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #00ADD8 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 32px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #c9d1d9;
+            margin-bottom: 8px;
+        }
+        input[type="email"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #00ADD8;
+        }
+        input[type="email"]::placeholder {
+            color: #6e7681;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00ADD8 0%, #003399 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 173, 216, 0.4);
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .privacy-note {
+            font-size: 12px;
+            color: #6e7681;
+            line-height: 1.5;
+            margin-top: 24px;
+            text-align: center;
+        }
+        .privacy-note a {
+            color: #00ADD8;
+            text-decoration: none;
+        }
+        .privacy-note a:hover {
+            text-decoration: underline;
+        }
+        .features {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid #30363d;
+        }
+        .features h2 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #c9d1d9;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+        .feature-icon {
+            color: #00ADD8;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .error {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid rgba(248, 81, 73, 0.3);
+            color: #ffa198;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="demo-badge">🛡️ DEMO MODE</div>
+        <h1>AegisGate Live Demo</h1>
+        <p class="subtitle">
+            Sign in with your email to access the live, interactive demo of the
+            AegisGate Security Platform. No real data. No production use.
+        </p>
+
+        <div class="error" id="error"></div>
+
+        <form id="signup-form" autocomplete="email">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="you@company.com"
+                    required
+                    autofocus
+                    autocomplete="email"
+                >
+            </div>
+            <button type="submit" class="submit-btn" id="submit-btn">
+                Continue to Demo →
+            </button>
+        </form>
+
+        <p class="privacy-note">
+            By signing in, you agree to our
+            <a href="https://aegisgatesecurity.io/privacy/" target="_blank">Privacy Policy</a>.
+            We use your email to send you AegisGate product updates (no spam, unsubscribe anytime).
+        </p>
+
+        <div class="features">
+            <h2>What's in the demo</h2>
+            <div class="feature">
+                <span class="feature-icon">🛡️</span>
+                <span>20 pre-loaded threat scenarios (prompt injection, PII, jailbreaks, MCP, A2A, ...)</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔧</span>
+                <span>5 sample MCP tools (filesystem, web search, calculator, datetime, echo)</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🇪🇺</span>
+                <span>Pre-run EU AI Act scan showing 82 controls with realistic statuses</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📊</span>
+                <span>24h of mock dashboard activity (request rates, threat detections)</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🎮</span>
+                <span>Interactive playground with 12 sample prompts (safe and demonstrative)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const submitBtn = document.getElementById('submit-btn');
+            const errorEl = document.getElementById('error');
+
+            // Clear any previous error
+            errorEl.classList.remove('show');
+
+            // Basic email validation
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errorEl.textContent = 'Please enter a valid email address.';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            // Disable button during submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in...';
+
+            try {
+                // POST to the signup handler
+                const response = await fetch('/signup/submit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email})
+                });
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.error || 'Sign-in failed. Please try again.');
+                }
+
+                // Success — store email in sessionStorage and redirect
+                sessionStorage.setItem('demo_email', email);
+                window.location.href = '/dashboard/';
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.add('show');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Continue to Demo →';
+            }
+        });
+    </script>
+</body>
+</html>
