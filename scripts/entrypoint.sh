@@ -17,7 +17,7 @@ set -euo pipefail
 # ============================================
 # Configuration
 # ============================================
-PLATFORM_BINARY="${PLATFORM_BINARY:-/aegisgate-platform}"
+PLATFORM_BINARY="${PLATFORM_BINARY:-/usr/local/bin/aegisgate-platform}"
 SEED_DIR="/opt/aegisgate-demo/seed-data"
 DATA_DIR="/data"
 RESET_HOURS="${AEGISGATE_DEMO_RESET_HOURS:-24}"
