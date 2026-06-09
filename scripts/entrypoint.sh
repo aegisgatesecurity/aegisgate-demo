@@ -38,9 +38,32 @@ echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Platform version:" | tee -a "$LOG_FILE"
 "$PLATFORM_BINARY" --version 2>&1 | tee -a "$LOG_FILE" || true
 
 # ============================================
+# Storage directory setup
+# ============================================
+# On free tier, we don't have a persistent disk. The /data directory
+# is still created but it lives in the container's filesystem, which
+# means it's lost on container restart.
+#
+# In production (with a paid Render plan), you would mount a real disk:
+#   disk:
+#     name: demo-data
+#     mountPath: /data
+#     sizeGB: 1
+#
+# For now (free tier), we:
+#   1. Create /data as a regular directory
+#   2. The seed data is re-loaded from the image on every startup
+#   3. The signup CSV is ephemeral (regenerated on every restart)
+#   4. The daily reset still works (it re-copies seed data)
+
+# ============================================
 # Initialize demo data
 # ============================================
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Initializing demo data..." | tee -a "$LOG_FILE"
+
+# Ensure /data exists (might be missing if disk wasn't mounted)
+mkdir -p "$DATA_DIR/seed" "$DATA_DIR/signups" "$DATA_DIR/audit"
+chmod 777 "$DATA_DIR" "$DATA_DIR/seed" "$DATA_DIR/signups" "$DATA_DIR/audit" 2>/dev/null || true
 
 # Copy seed data to runtime directory (if not already there)
 if [ -d "$SEED_DIR" ] && [ -z "$(ls -A $DATA_DIR/seed 2>/dev/null)" ]; then

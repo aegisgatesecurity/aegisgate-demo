@@ -28,12 +28,11 @@ services:
     name: aegisgate-demo
     runtime: docker
     dockerfilePath: ./Dockerfile.demo
-    # startCommand: Required by Render's UI even for Docker services.
-    # For Docker, the actual start command comes from the ENTRYPOINT in
-    # the Dockerfile (which is tini + our entrypoint.sh). This value
-    # is a fallback that's only used if ENTRYPOINT is missing.
-    # See: https://docs.render.com/blueprint-spec
-    startCommand: "/opt/aegisgate-demo/scripts/entrypoint.sh"
+    # NOTE: Removed 'startCommand' — Render's error said:
+    #   'docker runtime must not have startCommand'
+    # For Docker services, Render uses dockerCommand OR the Dockerfile's
+    # CMD/ENTRYPOINT. Our Dockerfile.demo has ENTRYPOINT set, so Render
+    # will use that. See: https://docs.render.com/blueprint-spec
     plan: free  # Free tier: sleeps after 15min inactivity, 750 hrs/mo
     region: oregon
     branch: main
@@ -81,11 +80,22 @@ services:
     # came from using the WRONG field name. The correct name is
     # "domain" (singular) as a string.
     domain: demo.aegisgatesecurity.io
-    # Resource limits
-    disk:
-      name: demo-data
-      mountPath: /data
-      sizeGB: 1  # Free tier max
+    # NOTE: Removed the 'disk' field — Render's error said:
+    #   'disks are not supported for free tier services'
+    # Persistent disks require a paid plan ($7/mo for starter).
+    # For the free tier, the seed data is loaded from the Docker image
+    # on every container startup, and the signup CSV is ephemeral
+    # (regenerated on every restart, which happens every ~15min anyway
+    # when the service sleeps).
+    #
+    # The entrypoint script still works — it just doesn't have a /data
+    # directory to persist to. We use a tmpfs-backed /data instead.
+    #
+    # When the user upgrades to a paid plan, they can add:
+    #   disk:
+    #     name: demo-data
+    #     mountPath: /data
+    #     sizeGB: 1
     # NOTE: Removed the 'scaling' field because the Render Blueprint
     # schema requires minInstances: >= 1. We wanted minInstances: 0 to
     # allow the service to scale to zero on the free tier (which sleeps
