@@ -22,6 +22,12 @@ services:
     name: aegisgate-demo
     runtime: docker
     dockerfilePath: ./Dockerfile.demo
+    # startCommand: Required by Render's UI even for Docker services.
+    # For Docker, the actual start command comes from the ENTRYPOINT in
+    # the Dockerfile (which is tini + our entrypoint.sh). This value
+    # is a fallback that's only used if ENTRYPOINT is missing.
+    # See: https://docs.render.com/blueprint-spec
+    startCommand: "/opt/aegisgate-demo/scripts/entrypoint.sh"
     plan: free  # Free tier: sleeps after 15min inactivity, 750 hrs/mo
     region: oregon
     branch: main
