@@ -13,6 +13,12 @@
 #   6. Render auto-provisions Let's Encrypt SSL
 #
 # Docs: https://docs.render.com/blueprint-spec
+# Schema: https://render.com/schema/render.yaml.json
+# (validated against the official JSON Schema)
+
+# IMPORTANT: The Blueprint spec requires a top-level 'version' field
+# (must be "1" exactly). Without it, the schema rejects the file.
+version: "1"
 
 services:
   # ============================================
@@ -33,12 +39,11 @@ services:
     branch: main
     autoDeploy: true  # Re-deploy on every push to main
     healthCheckPath: /health
-    # Container exposes port 80 (nginx reverse proxy)
-    # nginx routes:
-    #   /              → signup server (port 8083)
-    #   /platform/*    → AegisGate platform (port 8080)
-    #   /health        → AegisGate platform health endpoint
-    port: 80
+    # NOTE: Render's current Blueprint spec (verified against
+    # https://render.com/schema/render.yaml.json) does NOT have a
+    # 'port' field — Render auto-detects the public port from the
+    # Docker container's EXPOSE directive. Our Dockerfile.demo
+    # exposes port 80 (nginx reverse proxy).
     envVars:
       # === Demo mode configuration ===
       - key: AEGISGATE_MODE
@@ -67,18 +72,24 @@ services:
         sync: false
       - key: CF_TURNSTILE_SECRET_KEY
         sync: false
-    # Custom domains (auto-provisions SSL)
-    customDomains:
-      - domain: demo.aegisgatesecurity.io
-        type: cname
+    # Custom domain (auto-provisions SSL)
+    # Per the official Render Blueprint spec at
+    # https://render.com/schema/render.yaml.json:
+    #   domain:  (string) for a single custom domain
+    #   domains: (array of strings) for multiple custom domains
+    # The error "field customDomains not found in type file.Service"
+    # came from using the WRONG field name. The correct name is
+    # "domain" (singular) as a string.
+    domain: demo.aegisgatesecurity.io
     # Resource limits
     disk:
       name: demo-data
       mountPath: /data
       sizeGB: 1  # Free tier max
-    # Auto-suspend on free tier (sleeps after 15min inactivity)
-    # This is the default for the free plan — explicitly noted for clarity
-    # When the demo is accessed, Render wakes it up (~30s cold start)
-    scaling:
-      minInstances: 0  # Free tier
-      maxInstances: 1  # Free tier
+    # NOTE: Removed the 'scaling' field because the Render Blueprint
+    # schema requires minInstances: >= 1. We wanted minInstances: 0 to
+    # allow the service to scale to zero on the free tier (which sleeps
+    # after 15min), but the schema doesn't allow 0. The free tier
+    # sleeps automatically by default, so we don't need explicit scaling.
+    # If we want explicit scaling, we need to upgrade to a paid plan
+    # where minInstances: 1 is acceptable.
