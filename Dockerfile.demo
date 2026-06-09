@@ -18,7 +18,7 @@
 # ============================================
 # Stage 1: Base image (the actual platform)
 # ============================================
-FROM ghcr.io/aegisgatesecurity/aegisgate-platform:v3.3.0-beta.2 AS base
+FROM ghcr.io/aegisgatesecurity/aegisgate-platform:main AS base
 
 # Verify the base image
 RUN /aegisgate-platform --version || echo "Base image OK (binary present)"
