@@ -71,7 +71,7 @@ EXPOSE 80
 
 # Health check (Render will hit this every 30s)
 # nginx will proxy /health to the platform's dashboard port (8443)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
     CMD curl -f http://localhost:80/health || exit 1
 
 # Use tini for proper signal handling
