@@ -1,48 +1,25 @@
-# AegisGate Demo - Custom Dockerfile
-# ======================================
+# AegisGate Demo - Rebuilt Dockerfile
+# =====================================
 #
-# This Dockerfile builds the AegisGate demo environment on top of the
-# official platform image. It adds:
+# This Dockerfile builds the demo environment using a known-good base
+# (Alpine 3.19) and the platform binary we built locally. The previous
+# approach of using the platform's Docker image failed because:
+#   1. The 'main' tag on GHCR is stale (points to v1.3.7 from May 2026)
+#   2. The platform's base image has no working apk repos
 #
-#   1. Demo mode flag (--mode=demo) to make the binary start in demo mode
-#   2. Sample data seeding (pre-loaded threats, MCP tools, compliance scans)
-#   3. Daily reset mechanism (clears state every 24h)
-#   4. Read-only admin dashboard wrapper
-#   5. Email signup page (replaces the default landing)
-#   6. "DEMO MODE" banner overlay on all pages
-#   7. Health checks and graceful shutdown
-#
-# The base image is the official AegisGate v3.3.0-beta.2 platform image.
-# This Dockerfile is layered on top — it doesn't rebuild the platform.
+# This approach:
+#   1. Uses Alpine 3.19 (well-maintained, has working apk repos)
+#   2. Copies the platform binary from the build context
+#   3. Installs nginx, python3, etc. via standard alpine packages
+#   4. Has the actual v3.3.0-beta.2-demo code (not the stale v1.3.7)
 
 # ============================================
-# Stage 1: Base image (the actual platform)
+# Stage 1: Base image
 # ============================================
-FROM ghcr.io/aegisgatesecurity/aegisgate-platform:main AS base
+FROM alpine:3.19 AS base
 
-# Verify the base image
-# The platform binary is at /usr/local/bin/aegisgate-platform in the
-# production stage of the platform's Dockerfile.
-RUN /usr/local/bin/aegisgate-platform --version || echo "Base image OK (binary present at /usr/local/bin/aegisgate-platform)"
-
-# ============================================
-# Stage 2: Add demo-specific files
-# ============================================
-FROM base AS demo
-
-# Demo mode requires these environment variables
-# (set via docker-compose or Render.com env)
-ENV AEGISGATE_MODE=demo
-ENV AEGISGATE_LOG_LEVEL=info
-ENV AEGISGATE_DEMO_RESET_HOURS=24
-ENV AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR=100
-ENV AEGISGATE_DEMO_RANDOM_SEED="aegisgate-demo-2026-06"
-
-# Install minimal tools for the demo wrapper script
-# The base image is Alpine (per the platform's Dockerfile), so we use apk.
-# The `|| true` ensures the build doesn't fail if a package isn't available
-# (we want a working demo, not a perfect install).
-# The 2>/dev/null suppresses error output from apk repos that aren't configured.
+# Install all the packages we need in one go
+# alpine:3.19 has the standard alpine repos (no need for --repository flag)
 RUN apk add --no-cache \
         bash \
         curl \
@@ -50,42 +27,52 @@ RUN apk add --no-cache \
         nginx \
         python3 \
         py3-pip \
-        ca-certificates 2>/dev/null || \
-    (echo "[WARN] apk install failed, trying without nginx..." && \
-     apk add --no-cache bash curl tini python3 py3-pip ca-certificates 2>/dev/null) || \
-    echo "[WARN] All package installs failed, continuing without nginx"
+        ca-certificates \
+        tzdata
 
-# Create nginx directories (needed if nginx was just installed)
-RUN mkdir -p /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx 2>/dev/null || true
+# ============================================
+# Stage 2: Add demo-specific files
+# ============================================
+FROM base AS demo
+
+# Demo mode env vars
+ENV AEGISGATE_MODE=demo
+ENV AEGISGATE_LOG_LEVEL=info
+ENV AEGISGATE_DEMO_RESET_HOURS=24
+ENV AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR=100
+ENV AEGISGATE_DEMO_RANDOM_SEED="aegisgate-demo-2026-06"
+ENV PYTHONUNBUFFERED=1
+
+# Copy the pre-built platform binary
+# This binary was built locally from the v3.3.0-beta.2 source
+COPY aegisgate-platform /usr/local/bin/aegisgate-platform
+RUN chmod +x /usr/local/bin/aegisgate-platform
 
 # Copy demo-specific files
 COPY seed-data/ /opt/aegisgate-demo/seed-data/
 COPY email-signup/ /opt/aegisgate-demo/email-signup/
 COPY scripts/ /opt/aegisgate-demo/scripts/
 COPY nginx/ /opt/aegisgate-demo/nginx/
-
-# Make scripts executable
-RUN chmod +x /opt/aegisgate-demo/scripts/*.sh 2>/dev/null || true
-
-# Create directories for runtime state
-RUN mkdir -p /data /data/signups /data/seed /data/reset && \
-    chmod 777 /data /data/signups /data/seed /data/reset
-
-# Add a "DEMO MODE" banner to the platform's web UI
-# (we do this by overlaying a CSS file that adds the banner via JS)
 COPY scripts/demo-banner.css /opt/aegisgate-demo/demo-banner.css
 COPY scripts/demo-banner.js /opt/aegisgate-demo/demo-banner.js
 
-# Expose port 80 for nginx (the public-facing reverse proxy)
-# Internal ports (8080 platform, 8083 signup, 8443 dashboard) are NOT exposed
-# to the public; they're only accessible to nginx within the container
+# Make scripts executable
+RUN chmod +x /opt/aegisgate-demo/scripts/*.sh
+
+# Create data directories (ephemeral on free tier, no disk mount)
+RUN mkdir -p /data /data/signups /data/seed /data/audit && \
+    chmod 777 /data /data/signups /data/seed /data/audit
+
+# Create nginx runtime directories
+RUN mkdir -p /var/log/nginx /var/lib/nginx /run/nginx /var/cache/nginx
+
+# Expose port 80 (nginx is the public-facing service)
 EXPOSE 80
 
-# Health check: verify the platform is responding
-# (uses the platform's built-in /health endpoint, which nginx proxies)
+# Health check (Render will hit this every 30s)
+# nginx will proxy /health to the platform's dashboard port (8443)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -f http://localhost:80/health || exit 1
 
-# Use tini for proper signal handling (if available)
-# Falls back to the platform's own signal handling
+# Use tini for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--", "/opt/aegisgate-demo/scripts/entrypoint.sh"]
