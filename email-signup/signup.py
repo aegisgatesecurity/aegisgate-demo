@@ -345,7 +345,7 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
                     "state_file_exists": os.path.exists(DIGEST_STATE_FILE),
                 },
                 "signups": {
-                    "data_dir": DATA_DIR,
+                    "data_dir": EMAIL_STORAGE_DIR,
                     "csv_path": EMAIL_FILE,
                     "csv_exists": os.path.exists(EMAIL_FILE),
                     "csv_size_bytes": os.path.getsize(EMAIL_FILE) if os.path.exists(EMAIL_FILE) else 0,
