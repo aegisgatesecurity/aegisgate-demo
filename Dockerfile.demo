@@ -53,6 +53,7 @@ COPY seed-data/ /opt/aegisgate-demo/seed-data/
 COPY email-signup/ /opt/aegisgate-demo/email-signup/
 COPY scripts/ /opt/aegisgate-demo/scripts/
 COPY nginx/ /opt/aegisgate-demo/nginx/
+COPY dashboard/ /opt/aegisgate-demo/dashboard/
 COPY scripts/demo-banner.css /opt/aegisgate-demo/demo-banner.css
 COPY scripts/demo-banner.js /opt/aegisgate-demo/demo-banner.js
 
