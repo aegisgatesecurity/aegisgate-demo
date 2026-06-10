@@ -60,9 +60,11 @@ ACCESS_COOKIE_REQUIRED = os.environ.get("AEGISGATE_ACCESS_COOKIE_REQUIRED", "tru
 # one is generated at startup and printed to the log.
 ADMIN_TOKEN = os.environ.get("AEGISGATE_ADMIN_TOKEN", "")
 if not ADMIN_TOKEN:
-    import secrets
-    ADMIN_TOKEN = secrets.token_urlsafe(32)
-    log(f"WARNING: AEGISGATE_ADMIN_TOKEN not set; generated ephemeral token: {ADMIN_TOKEN}")
+    import secrets as _secrets
+    ADMIN_TOKEN = _secrets.token_urlsafe(32)
+    # Note: log() isn't defined yet at module-load time, so use stderr directly
+    import sys as _sys
+    print(f"WARNING: AEGISGATE_ADMIN_TOKEN not set; generated ephemeral token: {ADMIN_TOKEN}", file=_sys.stderr)
 ADMIN_TOKEN_HEADER = "X-Admin-Token"  # simpler than Authorization: Bearer for curl
 
 # Cloudflare Turnstile (bot protection)
