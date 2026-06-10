@@ -323,39 +323,47 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
         if not self.check_admin_auth():
             self.send_json_error(401, "Unauthorized: missing or invalid admin token")
             return
-        status = {
-            "service": "aegisgate-demo",
-            "turnstile": {
-                "enabled": TURNSTILE_ENABLED,
-                "secret_configured": bool(TURNSTILE_SECRET_KEY),
-                "fail_open": TURNSTILE_FAIL_OPEN,
-            },
-            "cookie_gate": {
-                "cookie_name": ACCESS_COOKIE_NAME,
-                "max_age_seconds": ACCESS_COOKIE_MAX_AGE,
-                "required": ACCESS_COOKIE_REQUIRED,
-            },
-            "digest": {
-                "enabled": DIGEST_ENABLED,
-                "to": DIGEST_TO,
-                "from": DIGEST_FROM,
-                "resend_key_configured": bool(RESEND_API_KEY),
-                "state_file": DIGEST_STATE_FILE,
-                "state_file_exists": os.path.exists(DIGEST_STATE_FILE),
-            },
-            "signups": {
-                "data_dir": DATA_DIR,
-                "csv_path": EMAIL_FILE,
-                "csv_exists": os.path.exists(EMAIL_FILE),
-                "csv_size_bytes": os.path.getsize(EMAIL_FILE) if os.path.exists(EMAIL_FILE) else 0,
-                "row_count": _count_csv_rows(EMAIL_FILE) if os.path.exists(EMAIL_FILE) else 0,
-            },
-            "request": {
-                "client_ip": self.client_address[0],
-                "user_agent": self.headers.get("User-Agent", "unknown"),
-            },
-        }
-        self.send_json_response(200, status)
+        try:
+            status = {
+                "service": "aegisgate-demo",
+                "turnstile": {
+                    "enabled": TURNSTILE_ENABLED,
+                    "secret_configured": bool(TURNSTILE_SECRET_KEY),
+                    "fail_open": TURNSTILE_FAIL_OPEN,
+                },
+                "cookie_gate": {
+                    "cookie_name": ACCESS_COOKIE_NAME,
+                    "max_age_seconds": ACCESS_COOKIE_MAX_AGE,
+                    "required": ACCESS_COOKIE_REQUIRED,
+                },
+                "digest": {
+                    "enabled": DIGEST_ENABLED,
+                    "to": DIGEST_TO,
+                    "from": DIGEST_FROM,
+                    "resend_key_configured": bool(RESEND_API_KEY),
+                    "state_file": DIGEST_STATE_FILE,
+                    "state_file_exists": os.path.exists(DIGEST_STATE_FILE),
+                },
+                "signups": {
+                    "data_dir": DATA_DIR,
+                    "csv_path": EMAIL_FILE,
+                    "csv_exists": os.path.exists(EMAIL_FILE),
+                    "csv_size_bytes": os.path.getsize(EMAIL_FILE) if os.path.exists(EMAIL_FILE) else 0,
+                    "row_count": _count_csv_rows(EMAIL_FILE) if os.path.exists(EMAIL_FILE) else 0,
+                },
+                "request": {
+                    "client_ip": self.client_address[0],
+                    "user_agent": self.headers.get("User-Agent", "unknown"),
+                },
+            }
+            self.send_json_response(200, status)
+        except Exception as e:
+            import traceback
+            tb = traceback.format_exc()
+            log(f"ERROR in handle_admin_status: {type(e).__name__}: {e}")
+            log(f"  Traceback: {tb.replace(chr(10), ' | ')}")
+            # Return error to client (so we can see what's wrong via curl)
+            self.send_json_error(500, f"{type(e).__name__}: {e}")
 
     def handle_admin_run_digest(self):
         """Manually trigger the daily digest script. Returns the script's stdout/stderr."""
