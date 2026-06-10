@@ -252,12 +252,14 @@
 
                 // Success — store email in sessionStorage and redirect
                 sessionStorage.setItem('demo_email', email);
-                // Use an explicit HTTPS URL to avoid port 8080 being inherited
-                // from the original page URL. This ensures the user lands on
-                // the proper port 443 (HTTPS) regardless of how they got here.
-                // We redirect to /platform/ui/ which is the actual AegisGate
-                // platform UI path (not /platform/ which doesn't exist).
-                window.location.href = 'https://demo.aegisgatesecurity.io/platform/ui/';
+                // Redirect to the static demo dashboard (served at /dashboard/).
+                // We use a relative URL so this works on both the demo subdomain
+                // (https://demo.aegisgatesecurity.io) and any local dev
+                // environment (http://localhost:8080). The dashboard is fully
+                // self-contained: it does not require the platform's API.
+                // (Previously redirected to /platform/ui/ which 404s because
+                // the platform's dashboard server only exposes API endpoints.)
+                window.location.href = '/dashboard/';
             } catch (err) {
                 errorEl.textContent = err.message;
                 errorEl.classList.add('show');

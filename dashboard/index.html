@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisGate Live Demo — Interactive Security Platform</title>
+  <meta name="description" content="Explore AegisGate's AI security platform: threat detection, EU AI Act compliance, MCP protection, and an interactive playground.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ============================================ -->
+  <!-- DEMO MODE BANNER (persistent, top of viewport) -->
+  <!-- ============================================ -->
+  <div class="demo-banner" id="demo-banner">
+    <div class="demo-banner-content">
+      <span class="demo-banner-icon">🛡️</span>
+      <span class="demo-banner-text"><strong>DEMO MODE</strong> — Synthetic data. No real LLM. No production use.</span>
+      <button class="demo-banner-toggle" id="demo-banner-toggle" aria-label="Learn more about this demo">What's this?</button>
+    </div>
+  </div>
+
+  <!-- Hidden info panel (revealed by clicking "What's this?") -->
+  <div class="demo-info" id="demo-info" hidden>
+    <h3>About this Demo</h3>
+    <div class="demo-info-grid">
+      <div>
+        <h4>What this IS</h4>
+        <ul>
+          <li>Real AegisGate v3.3.0-beta.2 platform code</li>
+          <li>Pre-loaded sample threats, MCP tools, compliance data</li>
+          <li>Pre-run EU AI Act scan (82 controls)</li>
+          <li>24 hours of mock dashboard activity</li>
+          <li>Interactive playground with curated prompts</li>
+        </ul>
+      </div>
+      <div>
+        <h4>What this is NOT</h4>
+        <ul>
+          <li>Not a production environment</li>
+          <li>All data is synthetic (no real users, no real threats)</li>
+          <li>No real LLM calls (mock upstream)</li>
+          <li>State resets every 24 hours</li>
+          <li>Rate-limited to 100 req/hour per visitor</li>
+        </ul>
+      </div>
+    </div>
+    <p class="demo-info-cta">
+      For production information, visit
+      <a href="https://aegisgatesecurity.io" target="_blank" rel="noopener">aegisgatesecurity.io</a>.
+    </p>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- HEADER (logo + tagline + nav)                 -->
+  <!-- ============================================ -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <span class="brand-mark">⬢</span>
+        <span class="brand-name">AegisGate</span>
+        <span class="brand-tag">Security Platform</span>
+      </div>
+      <nav class="nav" aria-label="Dashboard sections">
+        <a href="#stats">Stats</a>
+        <a href="#compliance">EU AI Act</a>
+        <a href="#threats">Threats</a>
+        <a href="#tools">MCP Tools</a>
+        <a href="#metrics">Activity</a>
+        <a href="#playground">Playground</a>
+      </nav>
+      <a class="header-cta" href="https://aegisgatesecurity.io" target="_blank" rel="noopener">Get AegisGate →</a>
+    </div>
+  </header>
+
+  <!-- ============================================ -->
+  <!-- HERO                                          -->
+  <!-- ============================================ -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-title">See AegisGate in action.</h1>
+      <p class="hero-sub">
+        A live, interactive walk-through of the AI security platform. Every number on this page
+        comes from the real AegisGate engine running in demo mode against synthetic data.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#playground">Try the Playground</a>
+        <a class="btn btn-ghost" href="#compliance">View EU AI Act Scan</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 1. STATS GRID (8 headline numbers)            -->
+  <!-- ============================================ -->
+  <section class="section" id="stats">
+    <div class="container">
+      <h2 class="section-title">By the Numbers</h2>
+      <p class="section-sub">Headline metrics from this demo environment (last 24h).</p>
+      <div class="stats-grid" id="stats-grid">
+        <!-- Filled by dashboard.js -->
+        <div class="stat-skeleton">Loading stats…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 2. EU AI ACT COMPLIANCE SCAN                  -->
+  <!-- ============================================ -->
+  <section class="section section-alt" id="compliance">
+    <div class="container">
+      <h2 class="section-title">EU AI Act Compliance Scan</h2>
+      <p class="section-sub">
+        AegisGate's compliance engine ran a full EU AI Act scan against this demo environment
+        and reported on all 82 controls. The breakdown below mirrors what the real platform
+        would show for a similar high-risk system.
+      </p>
+
+      <!-- Category overview (rendered by JS) -->
+      <div class="compliance-overview" id="compliance-overview">
+        <div class="stat-skeleton">Loading compliance scan…</div>
+      </div>
+
+      <!-- Controls list (collapsible) -->
+      <div class="controls-wrapper">
+        <button class="controls-toggle" id="controls-toggle" aria-expanded="false">
+          <span class="toggle-icon">▶</span>
+          <span>Show all 82 controls</span>
+        </button>
+        <div class="controls-list" id="controls-list" hidden>
+          <!-- Filled by dashboard.js -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 3. THREAT DETECTIONS                          -->
+  <!-- ============================================ -->
+  <section class="section" id="threats">
+    <div class="container">
+      <h2 class="section-title">20 Threat Detections, Caught in Real Time</h2>
+      <p class="section-sub">
+        These are real attack patterns from the MITRE ATLAS framework that AegisGate's
+        detection engine identified and acted on. Each one shows what the attack looked
+        like, which layer caught it, and what the user saw.
+      </p>
+      <div class="threats-grid" id="threats-grid">
+        <div class="stat-skeleton">Loading threats…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 4. MCP TOOLS                                  -->
+  <!-- ============================================ -->
+  <section class="section section-alt" id="tools">
+    <div class="container">
+      <h2 class="section-title">5 Sample MCP Tools</h2>
+      <p class="section-sub">
+        AegisGate's MCP Protocol Protection module sits between the LLM agent and each
+        registered tool. Every tool call is checked against its registered signature,
+        permissions, and risk level before it executes.
+      </p>
+      <div class="tools-grid" id="tools-grid">
+        <div class="stat-skeleton">Loading tools…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 5. ACTIVITY METRICS (24h)                     -->
+  <!-- ============================================ -->
+  <section class="section" id="metrics">
+    <div class="container">
+      <h2 class="section-title">24h Activity Snapshot</h2>
+      <p class="section-sub">
+        Mock activity over the last 24 hours. Each bar is one hour of synthetic traffic.
+        The bars grow during business hours (09:00-17:00 UTC) and shrink overnight,
+        just like a real production deployment.
+      </p>
+
+      <div class="metrics-summary" id="metrics-summary">
+        <div class="stat-skeleton">Loading summary…</div>
+      </div>
+
+      <div class="chart-wrapper">
+        <h3 class="chart-title">Requests per hour (UTC)</h3>
+        <div class="bar-chart" id="bar-chart">
+          <div class="stat-skeleton">Loading chart…</div>
+        </div>
+      </div>
+
+      <div class="top-tech-grid">
+        <div class="top-tech-card">
+          <h3>Top Threat Techniques</h3>
+          <ol id="top-techniques">
+            <li>Loading…</li>
+          </ol>
+        </div>
+        <div class="top-tech-card">
+          <h3>Threat Category Breakdown</h3>
+          <ul id="threat-categories" class="category-bars">
+            <li>Loading…</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 6. INTERACTIVE PLAYGROUND                     -->
+  <!-- ============================================ -->
+  <section class="section section-alt" id="playground">
+    <div class="container">
+      <h2 class="section-title">Interactive Playground</h2>
+      <p class="section-sub">
+        Type a prompt and AegisGate will show you what it would do. The playground is
+        <strong>not connected to a real LLM</strong> — it's a curated set of 14
+        pre-canned responses keyed by keywords, designed to demonstrate the platform's
+        detection capabilities honestly and safely.
+      </p>
+
+      <div class="playground">
+        <!-- Input area -->
+        <div class="playground-input-area">
+          <label for="playground-input" class="playground-label">
+            Try a prompt:
+          </label>
+          <textarea
+            id="playground-input"
+            class="playground-input"
+            placeholder="Type a prompt here, or click one of the examples below…"
+            rows="3"
+            autocomplete="off"
+            spellcheck="false"
+          ></textarea>
+          <div class="playground-actions">
+            <button class="btn btn-primary" id="playground-submit">Send</button>
+            <button class="btn btn-ghost" id="playground-clear">Clear</button>
+            <span class="playground-hint">AegisGate response is pre-canned (demo mode)</span>
+          </div>
+        </div>
+
+        <!-- Output area -->
+        <div class="playground-output" id="playground-output" aria-live="polite">
+          <div class="playground-placeholder">
+            <p><strong>Ready to try AegisGate.</strong></p>
+            <p>Click any example below, or type your own prompt and hit Send.</p>
+          </div>
+        </div>
+
+        <!-- Example prompts (filled by playground.js) -->
+        <div class="playground-examples">
+          <h3 class="examples-title">Or try one of these examples:</h3>
+          <div class="examples-grid" id="examples-grid">
+            <!-- Filled by playground.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 7. FOOTER (disclaimer + CTAs)                 -->
+  <!-- ============================================ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4>About this Demo</h4>
+          <p>
+            You are looking at a <strong>public, sandboxed demo</strong> of the
+            AegisGate Security Platform running in <code>--mode=demo</code>.
+            All metrics, threats, and compliance data are synthetic.
+            No real LLM calls are made.
+          </p>
+        </div>
+        <div>
+          <h4>What you saw</h4>
+          <ul>
+            <li>EU AI Act compliance scan (82 controls)</li>
+            <li>20 pre-loaded threat detections</li>
+            <li>5 sample MCP tools with policy enforcement</li>
+            <li>24h of mock dashboard activity</li>
+            <li>Interactive playground (14 curated responses)</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Get Started</h4>
+          <p>
+            <a class="btn btn-primary btn-sm" href="https://aegisgatesecurity.io" target="_blank" rel="noopener">
+              Visit aegisgatesecurity.io →
+            </a>
+          </p>
+          <p class="footer-fineprint">
+            <a href="https://aegisgatesecurity.io/pricing" target="_blank" rel="noopener">Pricing</a> ·
+            <a href="https://aegisgatesecurity.io/docs" target="_blank" rel="noopener">Docs</a> ·
+            <a href="https://github.com/aegisgatesecurity/aegisgate-platform" target="_blank" rel="noopener">GitHub</a>
+          </p>
+        </div>
+      </div>
+      <p class="footer-meta">
+        AegisGate v3.3.0-beta.2 · Apache 2.0 ·
+        <a href="mailto:security@aegisgatesecurity.io">security@aegisgatesecurity.io</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+  <script src="playground.js"></script>
+</body>
+</html>
