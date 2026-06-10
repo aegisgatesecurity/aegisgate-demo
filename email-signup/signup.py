@@ -55,6 +55,16 @@ ACCESS_COOKIE_NAME = os.environ.get("AEGISGATE_ACCESS_COOKIE", "aegisgate_demo_a
 ACCESS_COOKIE_MAX_AGE = int(os.environ.get("AEGISGATE_ACCESS_COOKIE_MAX_AGE", "86400"))  # 24h
 ACCESS_COOKIE_REQUIRED = os.environ.get("AEGISGATE_ACCESS_COOKIE_REQUIRED", "true").lower() == "true"
 
+# Admin endpoints (for ops: trigger digest, check status)
+# Set AEGISGATE_ADMIN_TOKEN to a long random string. If not set, a random
+# one is generated at startup and printed to the log.
+ADMIN_TOKEN = os.environ.get("AEGISGATE_ADMIN_TOKEN", "")
+if not ADMIN_TOKEN:
+    import secrets
+    ADMIN_TOKEN = secrets.token_urlsafe(32)
+    log(f"WARNING: AEGISGATE_ADMIN_TOKEN not set; generated ephemeral token: {ADMIN_TOKEN}")
+ADMIN_TOKEN_HEADER = "X-Admin-Token"  # simpler than Authorization: Bearer for curl
+
 # Cloudflare Turnstile (bot protection)
 TURNSTILE_ENABLED = os.environ.get("AEGISGATE_TURNSTILE_ENABLED", "true").lower() == "true"
 TURNSTILE_SECRET_KEY = os.environ.get("AEGISGATE_TURNSTILE_SECRET_KEY", "")
@@ -216,6 +226,108 @@ def verify_turnstile(token, ip_address):
         return False, f"Bot challenge service unavailable ({type(e).__name__}). Please try again."
 
 
+
+    def check_admin_auth(self):
+        """Check the X-Admin-Token header. Returns True if authorized."""
+        from urllib.parse import urlparse, parse_qs
+        parsed = urlparse(self.path)
+        qs = parse_qs(parsed.query)
+        query_token = qs.get("token", [""])[0]
+        header_token = self.headers.get(ADMIN_TOKEN_HEADER, "")
+        return (
+            header_token == ADMIN_TOKEN or query_token == ADMIN_TOKEN
+        )
+
+    def handle_admin_status(self):
+        """Return a JSON status report. Useful for ops debugging."""
+        if not self.check_admin_auth():
+            self.send_json_error(401, "Unauthorized: missing or invalid admin token")
+            return
+        status = {
+            "service": "aegisgate-demo",
+            "turnstile": {
+                "enabled": TURNSTILE_ENABLED,
+                "secret_configured": bool(TURNSTILE_SECRET_KEY),
+                "fail_open": TURNSTILE_FAIL_OPEN,
+            },
+            "cookie_gate": {
+                "cookie_name": ACCESS_COOKIE_NAME,
+                "max_age_seconds": ACCESS_COOKIE_MAX_AGE,
+                "required": ACCESS_COOKIE_REQUIRED,
+            },
+            "digest": {
+                "enabled": DIGEST_ENABLED,
+                "to": DIGEST_TO,
+                "from": DIGEST_FROM,
+                "resend_key_configured": bool(RESEND_API_KEY),
+                "state_file": STATE_FILE,
+                "state_file_exists": os.path.exists(STATE_FILE),
+            },
+            "signups": {
+                "data_dir": DATA_DIR,
+                "csv_path": EMAIL_FILE,
+                "csv_exists": os.path.exists(EMAIL_FILE),
+                "csv_size_bytes": os.path.getsize(EMAIL_FILE) if os.path.exists(EMAIL_FILE) else 0,
+                "row_count": _count_csv_rows(EMAIL_FILE) if os.path.exists(EMAIL_FILE) else 0,
+            },
+            "request": {
+                "client_ip": self.client_address[0],
+                "user_agent": self.headers.get("User-Agent", "unknown"),
+            },
+        }
+        self.send_json_response(200, status)
+
+    def handle_admin_run_digest(self):
+        """Manually trigger the daily digest script. Returns the script's stdout/stderr."""
+        if not self.check_admin_auth():
+            self.send_json_error(401, "Unauthorized: missing or invalid admin token")
+            return
+
+        from urllib.parse import urlparse, parse_qs
+        parsed = urlparse(self.path)
+        qs = parse_qs(parsed.query)
+        hours = qs.get("hours", ["24"])[0]
+        dry_run = qs.get("dry-run", ["false"])[0].lower() == "true"
+
+        import subprocess
+        script = "/opt/aegisgate-demo/scripts/send_daily_digest.py"
+        args = [sys.executable, script, "--hours", str(hours)]
+        if dry_run:
+            args.append("--dry-run")
+
+        log(f"Admin: manually triggering digest (hours={hours}, dry_run={dry_run})")
+        try:
+            result = subprocess.run(
+                args,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                env=os.environ.copy(),
+            )
+            payload = {
+                "ok": result.returncode == 0,
+                "returncode": result.returncode,
+                "hours": hours,
+                "dry_run": dry_run,
+                "stdout": result.stdout[-4000:],
+                "stderr": result.stderr[-2000:],
+            }
+            self.send_json_response(200 if result.returncode == 0 else 500, payload)
+        except subprocess.TimeoutExpired:
+            self.send_json_error(500, "Digest script timed out after 30s")
+        except Exception as e:
+            self.send_json_error(500, f"Digest failed: {type(e).__name__}: {e}")
+
+
+def _count_csv_rows(path):
+    """Count data rows in a CSV (excluding the header)."""
+    try:
+        with open(path, "r") as f:
+            return max(0, sum(1 for _ in f) - 1)
+    except Exception:
+        return 0
+
+
 def serve_static(handler, filename, content_type="text/html"):
     """Serve a static file from the email-signup directory."""
     filepath = Path(__file__).parent / filename
@@ -263,6 +375,10 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(405)
             self.send_header("Allow", "POST")
             self.end_headers()
+        elif path == "/admin/status":
+            self.handle_admin_status()
+        elif path == "/admin/run-digest":
+            self.handle_admin_run_digest()
         else:
             self.send_error(404, f"Not found: {path}")
 
@@ -279,6 +395,8 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
 
         if path == "/signup/submit":
             self.handle_signup()
+        elif path == "/admin/run-digest":
+            self.handle_admin_run_digest()
         else:
             self.send_error(404, f"Not found: {path}")
 
