@@ -474,6 +474,18 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
         })
         self.wfile.write(response.encode("utf-8"))
 
+    def send_json_response(self, status_code, data):
+        """Send a JSON success response."""
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        # Allow cached responses for admin status (1 minute)
+        # but always revalidate
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.end_headers()
+        response = json.dumps(data, default=str)
+        self.wfile.write(response.encode("utf-8"))
+
     def send_json_error(self, status_code, message):
         """Send a JSON error response."""
         self.send_response(status_code)
