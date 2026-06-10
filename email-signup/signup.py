@@ -229,6 +229,76 @@ def verify_turnstile(token, ip_address):
 
 
 
+def _count_csv_rows(path):
+    """Count data rows in a CSV (excluding the header)."""
+    try:
+        with open(path, "r") as f:
+            return max(0, sum(1 for _ in f) - 1)
+    except Exception:
+        return 0
+
+
+def serve_static(handler, filename, content_type="text/html"):
+    """Serve a static file from the email-signup directory."""
+    filepath = Path(__file__).parent / filename
+    try:
+        with open(filepath, "rb") as f:
+            content = f.read()
+        handler.send_response(200)
+        handler.send_header("Content-Type", content_type)
+        handler.send_header("Content-Length", str(len(content)))
+        handler.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        handler.end_headers()
+        handler.wfile.write(content)
+    except FileNotFoundError:
+        handler.send_error(404, f"File not found: {filename}")
+
+
+# ============================================
+# HTTP Request Handler
+# ============================================
+class SignupHandler(http.server.BaseHTTPRequestHandler):
+    """Handle signup form submissions and static file serving."""
+
+    def log_message(self, format, *args):
+        """Override to use our custom logging."""
+        log(f"{self.client_address[0]} - {format % args}")
+
+    def do_GET(self):
+        """Handle GET requests."""
+        path = self.path.split("?")[0]  # Strip query string
+
+        if path == "/" or path == "/index.html" or path == "/signup/":
+            serve_static(self, "index.html")
+        elif path == "/dashboard/" or path == "/dashboard":
+            # Redirect to the static demo dashboard (served by nginx at /dashboard/).
+            # The static dashboard is self-contained — it does not require the
+            # platform's API. This is what we redirect to after a successful signup.
+            # (We do NOT redirect to /platform/ — that path proxies to the
+            # platform's dashboard server on port 8443, which only serves API
+            # endpoints, not a web UI, so users get a 404.)
+            self.send_response(302)
+            self.send_header("Location", "/dashboard/")
+            self.end_headers()
+        elif path == "/signup/submit":
+            # GET on /signup/submit is not allowed
+            self.send_response(405)
+            self.send_header("Allow", "POST")
+            self.end_headers()
+        elif path == "/admin/status":
+            self.handle_admin_status()
+        elif path == "/admin/run-digest":
+            self.handle_admin_run_digest()
+        else:
+            self.send_error(404, f"Not found: {path}")
+
+
+    def do_HEAD(self):
+        """Handle HEAD requests by delegating to do_GET (suppresses body)."""
+        # Just call do_GET — the base class handles body suppression
+        # for HEAD requests, and our GET returns proper headers.
+        self.do_GET()
+
     def check_admin_auth(self):
         """Check the X-Admin-Token header. Returns True if authorized."""
         from urllib.parse import urlparse, parse_qs
@@ -319,77 +389,6 @@ def verify_turnstile(token, ip_address):
             self.send_json_error(500, "Digest script timed out after 30s")
         except Exception as e:
             self.send_json_error(500, f"Digest failed: {type(e).__name__}: {e}")
-
-
-def _count_csv_rows(path):
-    """Count data rows in a CSV (excluding the header)."""
-    try:
-        with open(path, "r") as f:
-            return max(0, sum(1 for _ in f) - 1)
-    except Exception:
-        return 0
-
-
-def serve_static(handler, filename, content_type="text/html"):
-    """Serve a static file from the email-signup directory."""
-    filepath = Path(__file__).parent / filename
-    try:
-        with open(filepath, "rb") as f:
-            content = f.read()
-        handler.send_response(200)
-        handler.send_header("Content-Type", content_type)
-        handler.send_header("Content-Length", str(len(content)))
-        handler.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        handler.end_headers()
-        handler.wfile.write(content)
-    except FileNotFoundError:
-        handler.send_error(404, f"File not found: {filename}")
-
-
-# ============================================
-# HTTP Request Handler
-# ============================================
-class SignupHandler(http.server.BaseHTTPRequestHandler):
-    """Handle signup form submissions and static file serving."""
-
-    def log_message(self, format, *args):
-        """Override to use our custom logging."""
-        log(f"{self.client_address[0]} - {format % args}")
-
-    def do_GET(self):
-        """Handle GET requests."""
-        path = self.path.split("?")[0]  # Strip query string
-
-        if path == "/" or path == "/index.html" or path == "/signup/":
-            serve_static(self, "index.html")
-        elif path == "/dashboard/" or path == "/dashboard":
-            # Redirect to the static demo dashboard (served by nginx at /dashboard/).
-            # The static dashboard is self-contained — it does not require the
-            # platform's API. This is what we redirect to after a successful signup.
-            # (We do NOT redirect to /platform/ — that path proxies to the
-            # platform's dashboard server on port 8443, which only serves API
-            # endpoints, not a web UI, so users get a 404.)
-            self.send_response(302)
-            self.send_header("Location", "/dashboard/")
-            self.end_headers()
-        elif path == "/signup/submit":
-            # GET on /signup/submit is not allowed
-            self.send_response(405)
-            self.send_header("Allow", "POST")
-            self.end_headers()
-        elif path == "/admin/status":
-            self.handle_admin_status()
-        elif path == "/admin/run-digest":
-            self.handle_admin_run_digest()
-        else:
-            self.send_error(404, f"Not found: {path}")
-
-
-    def do_HEAD(self):
-        """Handle HEAD requests by delegating to do_GET (suppresses body)."""
-        # Just call do_GET — the base class handles body suppression
-        # for HEAD requests, and our GET returns proper headers.
-        self.do_GET()
 
     def do_POST(self):
         """Handle POST requests (signup submissions)."""
