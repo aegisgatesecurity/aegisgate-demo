@@ -215,7 +215,19 @@ def verify_turnstile(token, ip_address):
         )
 
         with urllib.request.urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode("utf-8"))
+            raw_body = response.read().decode("utf-8", errors="replace")
+        log(f"Turnstile siteverify response (first 200 chars): {raw_body[:200]}")
+
+        try:
+            result = json.loads(raw_body)
+        except (json.JSONDecodeError, ValueError) as e:
+            log(f"ERROR: Turnstile siteverify returned non-JSON body: {e}")
+            log(f"  Raw body: {raw_body!r}")
+            raise
+
+        if not isinstance(result, dict):
+            log(f"ERROR: Turnstile siteverify returned non-dict JSON ({type(result).__name__}): {result!r}")
+            raise TypeError(f"Expected dict, got {type(result).__name__}")
 
         if result.get("success"):
             log(f"Turnstile verified (hostname={result.get('hostname')}, action={result.get('action')})")
