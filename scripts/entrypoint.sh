@@ -177,7 +177,9 @@ echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Starting AegisGate in demo mode..." | tee
 exec "$PLATFORM_BINARY" \
     --config=/opt/aegisgate-demo/demo-config.yaml \
     --tier=community \
-    --embedded-mcp \
+    --embedded-mcp=false \
+    --proxy-port=9090   \
+    --mcp-port=9091   \
     --target=http://httpbin.org:80 \
     --mode=demo \
     2>&1 | tee -a "$LOG_FILE"
