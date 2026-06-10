@@ -188,7 +188,10 @@ def verify_turnstile(token, ip_address):
         req = urllib.request.Request(
             TURNSTILE_VERIFY_URL,
             data=data,
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": "aegisgate-demo-signup/1.0",
+            }
         )
 
         with urllib.request.urlopen(req, timeout=5) as response:
@@ -203,11 +206,14 @@ def verify_turnstile(token, ip_address):
             return False, f"Bot challenge failed: {', '.join(error_codes)}"
 
     except Exception as e:
-        log(f"ERROR: Turnstile verification exception: {e}")
+        import traceback
+        log(f"ERROR: Turnstile verification exception: {type(e).__name__}: {e}")
+        log(f"  Traceback: {traceback.format_exc().replace(chr(10), ' | ')}")
         if TURNSTILE_FAIL_OPEN:
             log("WARNING: TURNSTILE_FAIL_OPEN=true — accepting signup anyway (testing mode)")
             return True, ""
-        return False, "Bot challenge service unavailable. Please try again."
+        # Pass a more useful error message back (visible in browser network panel)
+        return False, f"Bot challenge service unavailable ({type(e).__name__}). Please try again."
 
 
 def serve_static(handler, filename, content_type="text/html"):
