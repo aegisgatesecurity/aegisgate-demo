@@ -6,9 +6,10 @@
 #   1. Verifies the platform binary is present
 #   2. Sets up demo data (seeds the database with sample content)
 #   3. Starts a daily reset cron job
-#   4. Starts the email signup server (a simple Python HTTP server)
-#   5. Starts the AegisGate platform in demo mode
-#   6. Handles graceful shutdown
+#   4. Starts the daily email digest (sends a Resend email at 09:00 UTC)
+#   5. Starts the email signup server (a simple Python HTTP server)
+#   6. Starts the AegisGate platform in demo mode
+#   7. Handles graceful shutdown
 #
 # This is the entrypoint for the Docker container.
 
@@ -109,8 +110,40 @@ RESET_SECONDS=$((RESET_HOURS * 3600))
 ) &
 RESET_PID=$!
 
+# ============================================
+# Set up daily digest cron job
+# ============================================
+# Send a daily email digest of new signups via Resend's HTTPS API.
+# Runs every hour, but the script itself decides whether it's time
+# to actually send (based on AEGISGATE_DIGEST_HOUR, default 09:00 UTC).
+# We loop hourly instead of using a real crontab because Alpine's
+# distroless base image doesn't ship with crond.
+DIGEST_SCRIPT="/opt/aegisgate-demo/scripts/send_daily_digest.py"
+DIGEST_HOUR="${AEGISGATE_DIGEST_HOUR:-9}"
+DIGEST_LAST_SENT_DAY=""
+
+(
+    while true; do
+        # Sleep until the top of the next hour
+        sleep 3600
+
+        # Get the current hour and day in UTC
+        CURRENT_HOUR=$(date -u +%H | sed 's/^0//')
+        CURRENT_DAY=$(date -u +%Y-%m-%d)
+
+        # Only send once per day, at the configured hour
+        if [ "$CURRENT_HOUR" = "$DIGEST_HOUR" ] && [ "$CURRENT_DAY" != "$DIGEST_LAST_SENT_DAY" ]; then
+            DIGEST_LAST_SENT_DAY="$CURRENT_DAY"
+            echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Daily digest: sending..." | tee -a "$LOG_FILE"
+            python3 "$DIGEST_SCRIPT" 2>&1 | tee -a "$LOG_FILE" || \
+                echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Daily digest: FAILED" | tee -a "$LOG_FILE"
+        fi
+    done
+) &
+DIGEST_PID=$!
+
 # Graceful shutdown handler
-trap 'echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Shutting down..." | tee -a "$LOG_FILE"; kill $RESET_PID 2>/dev/null || true; exit 0' SIGTERM SIGINT
+trap 'echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Shutting down..." | tee -a "$LOG_FILE"; kill $RESET_PID $DIGEST_PID 2>/dev/null || true; exit 0' SIGTERM SIGINT
 
 # ============================================
 # Start nginx reverse proxy (background)
