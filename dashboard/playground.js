@@ -31,6 +31,15 @@
     return esc(str).replace(/\n/g, '<br>');
   }
 
+  // For body strings that already contain trusted HTML
+  // (e.g., <strong>, <em>, <br>, <code>, <a>), convert
+  // newlines to <br> WITHOUT escaping the HTML. Used for
+  // the response body, which is authored as HTML.
+  function safeBody(str) {
+    if (str == null) return '';
+    return String(str).replace(/\n/g, '<br>');
+  }
+
   // ============================================
   // Pre-canned response bank
   // ============================================
@@ -338,7 +347,7 @@
         </div>
         <div class="response-body">
           <strong>${esc(response.title || 'Analysis complete')}.</strong><br>
-          ${nl2br(response.body)}
+          ${safeBody(response.body)}
         </div>
         ${metaHtml}
       </div>
