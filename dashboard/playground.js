@@ -60,7 +60,7 @@
         verdict: 'blocked',
         layer: 'http_api_security',
         title: 'Direct prompt injection detected',
-        body: '🛑 <strong>Request blocked.</strong> AegisGate detected a known prompt-injection pattern in the request payload. The pattern matched is in our database of 47 known injection templates (including "ignore previous instructions", "system prompt override", "forget everything", and others).<br><br>The request was dropped at the gateway — it never reached the LLM. No tokens were spent, no data left the network, and the user (you) is shown a clear explanation instead of the attack's intended output.',
+        body: '🛑 <strong>Request blocked.</strong> AegisGate detected a known prompt-injection pattern in the request payload. The pattern matched is in our database of 47 known injection templates (including "ignore previous instructions", "system prompt override", "forget everything", and others).<br><br>The request was dropped at the gateway — it never reached the LLM. No tokens were spent, no data left the network, and the user (you) is shown a clear explanation instead of the attack\'s intended output.',
         meta: {
           'mitre_atlas': 'AML.T0051.000 (LLM Prompt Injection: Direct)',
           'pattern_matched': 'classic_override_template',
@@ -77,7 +77,7 @@
         verdict: 'blocked',
         layer: 'http_api_security',
         title: 'Jailbreak pattern detected',
-        body: '🛑 <strong>Request blocked.</strong> AegisGate identified a known jailbreak pattern in the input. The specific pattern matched: <em>"roleplay-as-unrestricted-AI"</em>, which includes DAN, DUDE, AIM, "Developer Mode", and 44 other variants in our database.<br><br>Jailbreaks attempt to bypass the LLM's safety training by reframing the model as a character with no rules. AegisGate stops them at the HTTP layer before the LLM is ever called, which is the only reliable place to stop them (the LLM cannot defend itself against its own roleplay).',
+        body: '🛑 <strong>Request blocked.</strong> AegisGate identified a known jailbreak pattern in the input. The specific pattern matched: <em>"roleplay-as-unrestricted-AI"</em>, which includes DAN, DUDE, AIM, "Developer Mode", and 44 other variants in our database.<br><br>Jailbreaks attempt to bypass the LLM\'s safety training by reframing the model as a character with no rules. AegisGate stops them at the HTTP layer before the LLM is ever called, which is the only reliable place to stop them (the LLM cannot defend itself against its own roleplay).',
         meta: {
           'mitre_atlas': 'AML.T0051.000 (Jailbreak variant)',
           'pattern_matched': 'roleplay_unrestricted_ai',
@@ -94,7 +94,7 @@
         verdict: 'allowed_with_warning',
         layer: 'agent_response_security',
         title: 'Response scanned and redacted',
-        body: '⚠️ <strong>Request allowed, response redacted.</strong> The LLM began to produce output that contained patterns matching sensitive credentials (e.g., a string starting with <code>sk_live_</code> or a JWT-shaped token). AegisGate's response scanner detected this <em>before</em> the response reached you, redacted the sensitive substring, and emitted an audit event.<br><br>Example of the redacted output: <code>sk_live_[REDACTED-BY-AEGISGATE]</code>. The original secret value was <strong>never stored</strong> in our audit log — only the secret type and count.',
+        body: '⚠️ <strong>Request allowed, response redacted.</strong> The LLM began to produce output that contained patterns matching sensitive credentials (e.g., a string starting with <code>sk_live_</code> or a JWT-shaped token). AegisGate\'s response scanner detected this <em>before</em> the response reached you, redacted the sensitive substring, and emitted an audit event.<br><br>Example of the redacted output: <code>sk_live_[REDACTED-BY-AEGISGATE]</code>. The original secret value was <strong>never stored</strong> in our audit log — only the secret type and count.',
         meta: {
           'mitre_atlas': 'AML.T0024 (Exfiltration via Cyber Means)',
           'patterns_detected': 'cloud_provider_secret_key (sk_live_*)',
@@ -111,7 +111,7 @@
         verdict: 'blocked',
         layer: 'mcp_protocol_protection',
         title: 'MCP tool call blocked by policy',
-        body: '🛑 <strong>Tool call blocked.</strong> The LLM agent attempted to invoke an MCP tool with destructive or sensitive parameters. AegisGate's MCP Protocol Protection module evaluated the tool call against the tool's registered permissions and risk policy.<br><br>In this demo, the <code>filesystem</code> MCP tool is registered as <strong>read-only</strong> (write/delete operations are disabled). The tool call was denied at the MCP protocol layer, before it ever reached the tool implementation.',
+        body: '🛑 <strong>Tool call blocked.</strong> The LLM agent attempted to invoke an MCP tool with destructive or sensitive parameters. AegisGate\'s MCP Protocol Protection module evaluated the tool call against the tool\'s registered permissions and risk policy.<br><br>In this demo, the <code>filesystem</code> MCP tool is registered as <strong>read-only</strong> (write/delete operations are disabled). The tool call was denied at the MCP protocol layer, before it ever reached the tool implementation.',
         meta: {
           'mitre_atlas': 'AML.T0046 (ML-Enabled Product or Service)',
           'tool': 'filesystem',
@@ -129,7 +129,7 @@
         verdict: 'blocked',
         layer: 'compliance_engine',
         title: 'EU AI Act Article 5 violation',
-        body: '🛑 <strong>Request blocked at the compliance layer.</strong> AegisGate's EU AI Act compliance module detected that the requested behavior falls under <strong>Article 5 (Prohibited Practices)</strong>. Article 5 of EU Regulation 2024/1689 lists AI practices that are banned in the EU — including subliminal manipulation, exploitation of vulnerabilities, social scoring by public authorities, real-time biometric identification in public spaces, and emotion recognition in workplace/education contexts.<br><br>Such requests are blocked even if the underlying LLM would otherwise comply. The audit log records the attempt for post-market monitoring.',
+        body: '🛑 <strong>Request blocked at the compliance layer.</strong> AegisGate\'s EU AI Act compliance module detected that the requested behavior falls under <strong>Article 5 (Prohibited Practices)</strong>. Article 5 of EU Regulation 2024/1689 lists AI practices that are banned in the EU — including subliminal manipulation, exploitation of vulnerabilities, social scoring by public authorities, real-time biometric identification in public spaces, and emotion recognition in workplace/education contexts.<br><br>Such requests are blocked even if the underlying LLM would otherwise comply. The audit log records the attempt for post-market monitoring.',
         meta: {
           'regulation': 'EU Regulation 2024/1689',
           'article': 'Article 5 (Prohibited Practices)',
@@ -147,7 +147,7 @@
         verdict: 'allowed',
         layer: 'compliance_engine',
         title: 'GDPR Article 17 — Data Deletion Confirmed',
-        body: '✅ <strong>Request processed.</strong> AegisGate's GDPR compliance module accepted your data subject access request (DSAR) under Article 17 ("Right to Erasure").<br><br>The platform: (1) queued your account's PII for cryptographic deletion in the audit log, (2) revoked all active session tokens, (3) notified the data processor (in demo mode, that's <em>us</em>), and (4) generated a confirmation receipt.<br><br>In production, this would also trigger a downstream cascade to all connected systems (CRM, billing, etc.) via webhook. Note: the deletion confirmation event itself is retained for regulatory proof-of-action.',
+        body: '✅ <strong>Request processed.</strong> AegisGate\'s GDPR compliance module accepted your data subject access request (DSAR) under Article 17 ("Right to Erasure").<br><br>The platform: (1) queued your account\'s PII for cryptographic deletion in the audit log, (2) revoked all active session tokens, (3) notified the data processor (in demo mode, that\'s <em>us</em>), and (4) generated a confirmation receipt.<br><br>In production, this would also trigger a downstream cascade to all connected systems (CRM, billing, etc.) via webhook. Note: the deletion confirmation event itself is retained for regulatory proof-of-action.',
         meta: {
           'regulation': 'GDPR (EU 2016/679)',
           'article': 'Article 17 (Right to Erasure)',
@@ -164,7 +164,7 @@
         verdict: 'rate_limited',
         layer: 'rate_limiting',
         title: 'Rate limit applied',
-        body: '⏱️ <strong>Request rate-limited.</strong> You have exceeded the demo's rate limit of 100 requests/hour per IP. AegisGate's distributed rate limiter blocked further requests with HTTP 429 and applied a 1-hour cooldown.<br><br>The rate limit is intentionally low in the demo to prevent abuse. Production deployments allow 10,000+ requests/hour (Developer tier) or unlimited (Enterprise tier). Rate limits can also be configured per-tier, per-user, per-API-key, or per-MCP-tool.',
+        body: '⏱️ <strong>Request rate-limited.</strong> You have exceeded the demo\'s rate limit of 100 requests/hour per IP. AegisGate\'s distributed rate limiter blocked further requests with HTTP 429 and applied a 1-hour cooldown.<br><br>The rate limit is intentionally low in the demo to prevent abuse. Production deployments allow 10,000+ requests/hour (Developer tier) or unlimited (Enterprise tier). Rate limits can also be configured per-tier, per-user, per-API-key, or per-MCP-tool.',
         meta: {
           'limit': '100 req/hour per IP',
           'your_count': '120+ (last hour)',
@@ -181,7 +181,7 @@
         verdict: 'allowed_with_warning',
         layer: 'cross_protocol_correlation',
         title: 'Excessive agency pattern detected',
-        body: '⚠️ <strong>Operations throttled.</strong> AegisGate's cross-protocol correlation engine detected an anomalous pattern: the agent attempted to execute a high number of high-impact operations in a single turn (well above its baseline behavior).<br><br>Result: The first 5 operations were allowed (to preserve legitimate use), then the engine flagged the pattern as <em>excessive agency</em> and paused further operations pending explicit human confirmation. The user (or a human overseer, per EU AI Act Article 14) is asked: <em>"This agent is attempting 42 more write operations. Approve?"</em>',
+        body: '⚠️ <strong>Operations throttled.</strong> AegisGate\'s cross-protocol correlation engine detected an anomalous pattern: the agent attempted to execute a high number of high-impact operations in a single turn (well above its baseline behavior).<br><br>Result: The first 5 operations were allowed (to preserve legitimate use), then the engine flagged the pattern as <em>excessive agency</em> and paused further operations pending explicit human confirmation. The user (or a human overseer, per EU AI Act Article 14) is asked: <em>"This agent is attempting 42 more write operations. Approve?"</em>',
         meta: {
           'mitre_atlas': 'AML.T0043 (Craft Adversarial Data) + custom (excessive agency)',
           'baseline': '5 ops/turn',
@@ -198,7 +198,7 @@
         verdict: 'blocked',
         layer: 'a2a_security',
         title: 'A2A identity verification failed',
-        body: '🛑 <strong>A2A message rejected.</strong> AegisGate's Agent-to-Agent (A2A) security module verified the sender's ECDSA P-256 signature against the registered public keys. The signature did not match.<br><br>This indicates either: (a) the agent's private key has been compromised, (b) the agent is being impersonated by a malicious actor, or (c) the agent's key was rotated without updating AegisGate's registry. The message is rejected; the legitimate agent's owner is alerted.',
+        body: '🛑 <strong>A2A message rejected.</strong> AegisGate\'s Agent-to-Agent (A2A) security module verified the sender\'s ECDSA P-256 signature against the registered public keys. The signature did not match.<br><br>This indicates either: (a) the agent\'s private key has been compromised, (b) the agent is being impersonated by a malicious actor, or (c) the agent\'s key was rotated without updating AegisGate\'s registry. The message is rejected; the legitimate agent\'s owner is alerted.',
         meta: {
           'mitre_atlas': 'AML.T0046 (ML-Enabled Product or Service)',
           'claimed_identity': 'agent-trusted-vendor',
@@ -215,7 +215,7 @@
         verdict: 'allowed_with_warning',
         layer: 'http_api_security',
         title: 'System prompt extraction attempt — allowed with warning',
-        body: '⚠️ <strong>Request allowed, warning logged.</strong> AegisGate detected a system-prompt extraction attempt (a known reconnaissance pattern). System prompts are not classified as sensitive by default, so the request is allowed to proceed.<br><br>However: (1) a warning is appended to the LLM's response reminding the model to not disclose proprietary system instructions, (2) the event is logged for security review, and (3) if a customer configures their <code>system_prompt_classification</code> as <code>sensitive</code>, the request is blocked entirely.',
+        body: '⚠️ <strong>Request allowed, warning logged.</strong> AegisGate detected a system-prompt extraction attempt (a known reconnaissance pattern). System prompts are not classified as sensitive by default, so the request is allowed to proceed.<br><br>However: (1) a warning is appended to the LLM\'s response reminding the model to not disclose proprietary system instructions, (2) the event is logged for security review, and (3) if a customer configures their <code>system_prompt_classification</code> as <code>sensitive</code>, the request is blocked entirely.',
         meta: {
           'pattern_matched': 'system_prompt_extraction',
           'classification': 'non-sensitive (default)',
@@ -231,7 +231,7 @@
         verdict: 'allowed_with_warning',
         layer: 'agent_response_security',
         title: 'Indirect prompt injection — response scanned',
-        body: '⚠️ <strong>Request allowed, response aggressively scanned.</strong> AegisGate detected that the LLM is about to process external content (a URL or document). External content is the #1 vector for indirect prompt injection attacks (where an adversary hides malicious instructions in a webpage the LLM reads).<br><br>AegisGate's response scanner applies a stricter filter to any LLM output that was influenced by external content: tool calls are reviewed for unexpected destinations, response text is scanned for "as instructed by the document" patterns, and a warning is added to the response.',
+        body: '⚠️ <strong>Request allowed, response aggressively scanned.</strong> AegisGate detected that the LLM is about to process external content (a URL or document). External content is the #1 vector for indirect prompt injection attacks (where an adversary hides malicious instructions in a webpage the LLM reads).<br><br>AegisGate\'s response scanner applies a stricter filter to any LLM output that was influenced by external content: tool calls are reviewed for unexpected destinations, response text is scanned for "as instructed by the document" patterns, and a warning is added to the response.',
         meta: {
           'mitre_atlas': 'AML.T0051.001 (LLM Prompt Injection: Indirect)',
           'detection': 'external_content + tool_call_review',
@@ -247,7 +247,7 @@
         verdict: 'allowed',
         layer: 'http_api_security',
         title: 'Normal traffic — allowed',
-        body: '✅ <strong>Request allowed.</strong> This is a routine, non-malicious request. AegisGate's HTTP API scanner analyzed the input against 47 known prompt-injection templates, 12 jailbreak variants, 8 PII patterns, and 3 excessive-agency indicators. <strong>Zero matches.</strong><br><br>The request is forwarded to the LLM provider, and the response is scanned again on the way back (response-side redactor runs the same 70+ patterns plus 23 response-specific ones for PII, secrets, and tool-call injection). Total added latency: <em>~3ms</em> (P95 across the platform).',
+        body: '✅ <strong>Request allowed.</strong> This is a routine, non-malicious request. AegisGate\'s HTTP API scanner analyzed the input against 47 known prompt-injection templates, 12 jailbreak variants, 8 PII patterns, and 3 excessive-agency indicators. <strong>Zero matches.</strong><br><br>The request is forwarded to the LLM provider, and the response is scanned again on the way back (response-side redactor runs the same 70+ patterns plus 23 response-specific ones for PII, secrets, and tool-call injection). Total added latency: <em>~3ms</em> (P95 across the platform).',
         meta: {
           'input_scan': '0 matches (47 injection templates, 12 jailbreak patterns)',
           'output_scan': '0 matches (23 response patterns)',
@@ -281,7 +281,7 @@
         verdict: 'allowed',
         layer: 'http_api_security',
         title: 'Query analyzed — no threat detected',
-        body: '✅ <strong>Request allowed.</strong> AegisGate's HTTP API scanner analyzed your input against its full threat database: prompt-injection templates, jailbreak patterns, PII markers, MCP tool abuse patterns, and excessive-agency indicators. <strong>No threat detected.</strong><br><br>In a real deployment, your query would be forwarded to the configured LLM provider and the response would be scanned on the way back. In this demo, there is no LLM behind the playground — every response you see is from this pre-canned bank of 15 curated examples.<br><br>To see all 15 examples, click the buttons in the <em>"Or try one of these examples"</em> grid below.',
+        body: '✅ <strong>Request allowed.</strong> AegisGate\'s HTTP API scanner analyzed your input against its full threat database: prompt-injection templates, jailbreak patterns, PII markers, MCP tool abuse patterns, and excessive-agency indicators. <strong>No threat detected.</strong><br><br>In a real deployment, your query would be forwarded to the configured LLM provider and the response would be scanned on the way back. In this demo, there is no LLM behind the playground — every response you see is from this pre-canned bank of 15 curated examples.<br><br>To see all 15 examples, click the buttons in the <em>"Or try one of these examples"</em> grid below.',
         meta: {
           'input_scan': '0 matches across all rules',
           'demo_mode': 'active (no real LLM behind the playground)',
