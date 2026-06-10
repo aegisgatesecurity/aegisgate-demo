@@ -55,6 +55,11 @@ ACCESS_COOKIE_NAME = os.environ.get("AEGISGATE_ACCESS_COOKIE", "aegisgate_demo_a
 ACCESS_COOKIE_MAX_AGE = int(os.environ.get("AEGISGATE_ACCESS_COOKIE_MAX_AGE", "86400"))  # 24h
 ACCESS_COOKIE_REQUIRED = os.environ.get("AEGISGATE_ACCESS_COOKIE_REQUIRED", "true").lower() == "true"
 
+# Cloudflare Turnstile (bot protection)
+TURNSTILE_ENABLED = os.environ.get("AEGISGATE_TURNSTILE_ENABLED", "true").lower() == "true"
+TURNSTILE_SECRET_KEY = os.environ.get("AEGISGATE_TURNSTILE_SECRET_KEY", "")
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
 # Email validation regex (basic)
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
@@ -150,6 +155,51 @@ def send_webhook(email, ip_address, user_agent):
             log(f"Webhook sent: HTTP {response.status}")
     except Exception as e:
         log(f"WARNING: Webhook failed: {e}")
+
+
+def verify_turnstile(token, ip_address):
+    """Verify a Cloudflare Turnstile token. Returns (success: bool, error: str)."""
+    if not TURNSTILE_ENABLED:
+        # Turnstile disabled (e.g., for local dev) — skip verification
+        return True, ""
+
+    if not TURNSTILE_SECRET_KEY:
+        log("WARNING: Turnstile is enabled but no secret key is configured")
+        # Fail open if no secret key is configured (so we don't break the demo)
+        # In production, this should be 'fail closed' (return False)
+        return True, ""
+
+    if not token:
+        return False, "Missing bot-challenge token"
+
+    try:
+        data = urllib.parse.urlencode({
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": token,
+            "remoteip": ip_address,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            TURNSTILE_VERIFY_URL,
+            data=data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+
+        with urllib.request.urlopen(req, timeout=5) as response:
+            result = json.loads(response.read().decode("utf-8"))
+
+        if result.get("success"):
+            log(f"Turnstile verified (hostname={result.get('hostname')}, action={result.get('action')})")
+            return True, ""
+        else:
+            error_codes = result.get("error-codes", [])
+            log(f"Turnstile FAILED: {error_codes}")
+            return False, f"Bot challenge failed: {', '.join(error_codes)}"
+
+    except Exception as e:
+        log(f"WARNING: Turnstile verification error: {e}")
+        # Fail open on network errors (so the demo isn't fragile)
+        return True, ""
 
 
 def serve_static(handler, filename, content_type="text/html"):
@@ -248,6 +298,15 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
         # Get client info
         ip_address = self.client_address[0]
         user_agent = self.headers.get("User-Agent", "unknown")
+
+        # Turnstile verification (bot protection)
+        if TURNSTILE_ENABLED:
+            turnstile_token = data.get("cf-turnstile-response", "").strip()
+            ts_ok, ts_err = verify_turnstile(turnstile_token, ip_address)
+            if not ts_ok:
+                self.send_json_error(403, ts_err or "Bot challenge failed")
+                log(f"Turnstile REJECTED: {email_hash if 'email_hash' in dir() else email} (from {ip_address})")
+                return
 
         # Store and notify
         record_signup(email)

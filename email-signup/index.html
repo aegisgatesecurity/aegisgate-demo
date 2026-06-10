@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AegisGate Demo — Sign In</title>
+    <meta name="turnstile-site-key" content="0x4AAAAAADiH12Lor6jfzXED">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <meta name="description" content="Sign in to access the AegisGate live demo environment.">
     <meta name="robots" content="noindex, nofollow">
     <style>
@@ -103,6 +105,13 @@
             cursor: not-allowed;
             transform: none;
         }
+
+        /* Cloudflare Turnstile widget (invisible when valid) */
+        .cf-turnstile {
+            margin: 0 0 16px 0;
+            display: flex;
+            justify-content: center;
+        }
         .privacy-note {
             font-size: 12px;
             color: #6e7681;
@@ -179,7 +188,16 @@
                     autocomplete="email"
                 >
             </div>
-            <button type="submit" class="submit-btn" id="submit-btn">
+            <!-- Cloudflare Turnstile (invisible) -->
+            <div class="cf-turnstile"
+                 id="cf-turnstile"
+                 data-sitekey="0x4AAAAAADiH12Lor6jfzXED"
+                 data-callback="onTurnstileSuccess"
+                 data-expired-callback="onTurnstileExpired"
+                 data-error-callback="onTurnstileError">
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn" disabled>
                 Continue to Demo →
             </button>
         </form>
@@ -216,6 +234,37 @@
     </div>
 
     <script>
+        // ============================================
+        // Cloudflare Turnstile integration
+        // ============================================
+        // The submit button is disabled until Turnstile successfully
+        // validates the user. The token is sent in the POST body as
+        // 'cf-turnstile-response', and signup.py verifies it server-side
+        // against Cloudflare's siteverify API.
+
+        let turnstileToken = null;
+
+        window.onTurnstileSuccess = function(token) {
+            turnstileToken = token;
+            const submitBtn = document.getElementById('submit-btn');
+            const errorEl = document.getElementById('error');
+            submitBtn.disabled = false;
+            errorEl.classList.remove('show');
+        };
+
+        window.onTurnstileExpired = function() {
+            turnstileToken = null;
+            document.getElementById('submit-btn').disabled = true;
+        };
+
+        window.onTurnstileError = function() {
+            turnstileToken = null;
+            document.getElementById('submit-btn').disabled = true;
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = 'Bot challenge failed. Please refresh the page and try again.';
+            errorEl.classList.add('show');
+        };
+
         document.getElementById('signup-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -233,6 +282,13 @@
                 return;
             }
 
+            // Require a valid Turnstile token
+            if (!turnstileToken) {
+                errorEl.textContent = 'Please wait for the bot challenge to complete.';
+                errorEl.classList.add('show');
+                return;
+            }
+
             // Disable button during submission
             submitBtn.disabled = true;
             submitBtn.textContent = 'Signing in...';
@@ -242,7 +298,10 @@
                 const response = await fetch('/signup/submit', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email: email})
+                    body: JSON.stringify({
+                        email: email,
+                        'cf-turnstile-response': turnstileToken
+                    })
                 });
 
                 if (!response.ok) {
