@@ -136,13 +136,27 @@ fi
 # ============================================
 # Start the email signup server (background)
 # ============================================
+# IMPORTANT: We use the custom signup.py server (not python3 -m http.server)
+# because the custom one handles POST /signup/submit. The built-in
+# http.server only supports GET/HEAD and returns 501 on POST.
 if [ -d "/opt/aegisgate-demo/email-signup" ]; then
     echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Starting email signup server on port 8083..." | tee -a "$LOG_FILE"
-    # Use Python's built-in HTTP server (available in most base images)
-    cd /opt/aegisgate-demo/email-signup
-    python3 -m http.server 8083 --bind 127.0.0.1 >/dev/null 2>&1 &
-    SIGNUP_PID=$!
-    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Email signup server PID: $SIGNUP_PID" | tee -a "$LOG_FILE"
+    # Check if signup.py exists
+    if [ -f "/opt/aegisgate-demo/email-signup/signup.py" ]; then
+        cd /opt/aegisgate-demo/email-signup
+        # Run the custom signup server (handles POST /signup/submit)
+        # NOTE: signup.py uses argparse with --port flag, not positional argument
+        python3 signup.py --port 8083 >/dev/null 2>&1 &
+        SIGNUP_PID=$!
+        echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Email signup server PID: $SIGNUP_PID (custom handler)" | tee -a "$LOG_FILE"
+    else
+        # Fallback: built-in static server (won't handle POSTs)
+        echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] WARNING: signup.py not found, using static file server (POSTs will fail)" | tee -a "$LOG_FILE"
+        cd /opt/aegisgate-demo/email-signup
+        python3 -m http.server 8083 --bind 127.0.0.1 >/dev/null 2>&1 &
+        SIGNUP_PID=$!
+        echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Email signup server PID: $SIGNUP_PID (static fallback)" | tee -a "$LOG_FILE"
+    fi
 fi
 
 # ============================================
