@@ -180,9 +180,13 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
         if path == "/" or path == "/index.html" or path == "/signup/":
             serve_static(self, "index.html")
         elif path == "/dashboard/" or path == "/dashboard":
-            # For the demo, just redirect to the platform's main page
+            # Redirect to the platform's UI (which nginx serves via /platform/)
+            # The nginx /platform/ location now proxies to the dashboard port (8443)
+            # which shows the actual AegisGate platform UI.
+            # We do NOT redirect to localhost:8080 (the proxy port) because in
+            # demo mode that would show httpbin.org's content.
             self.send_response(302)
-            self.send_header("Location", "http://localhost:8080/")
+            self.send_header("Location", "/platform/")
             self.end_headers()
         elif path == "/signup/submit":
             # GET on /signup/submit is not allowed
