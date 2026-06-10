@@ -59,6 +59,11 @@ ACCESS_COOKIE_REQUIRED = os.environ.get("AEGISGATE_ACCESS_COOKIE_REQUIRED", "tru
 TURNSTILE_ENABLED = os.environ.get("AEGISGATE_TURNSTILE_ENABLED", "true").lower() == "true"
 TURNSTILE_SECRET_KEY = os.environ.get("AEGISGATE_TURNSTILE_SECRET_KEY", "")
 TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+# Fail OPEN means: if the verification call fails (network error, missing
+# config, etc.), accept the signup. Default is FAIL CLOSED (reject), which
+# is the right behavior for a security feature. Set to "true" only for
+# local dev/testing.
+TURNSTILE_FAIL_OPEN = os.environ.get("AEGISGATE_TURNSTILE_FAIL_OPEN", "false").lower() == "true"
 
 # Email validation regex (basic)
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -164,10 +169,11 @@ def verify_turnstile(token, ip_address):
         return True, ""
 
     if not TURNSTILE_SECRET_KEY:
-        log("WARNING: Turnstile is enabled but no secret key is configured")
-        # Fail open if no secret key is configured (so we don't break the demo)
-        # In production, this should be 'fail closed' (return False)
-        return True, ""
+        log("ERROR: Turnstile is enabled but no secret key is configured (set AEGISGATE_TURNSTILE_SECRET_KEY)")
+        if TURNSTILE_FAIL_OPEN:
+            log("WARNING: TURNSTILE_FAIL_OPEN=true — accepting signup anyway (testing mode)")
+            return True, ""
+        return False, "Bot challenge not configured. Please contact support."
 
     if not token:
         return False, "Missing bot-challenge token"
@@ -197,9 +203,11 @@ def verify_turnstile(token, ip_address):
             return False, f"Bot challenge failed: {', '.join(error_codes)}"
 
     except Exception as e:
-        log(f"WARNING: Turnstile verification error: {e}")
-        # Fail open on network errors (so the demo isn't fragile)
-        return True, ""
+        log(f"ERROR: Turnstile verification exception: {e}")
+        if TURNSTILE_FAIL_OPEN:
+            log("WARNING: TURNSTILE_FAIL_OPEN=true — accepting signup anyway (testing mode)")
+            return True, ""
+        return False, "Bot challenge service unavailable. Please try again."
 
 
 def serve_static(handler, filename, content_type="text/html"):
