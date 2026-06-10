@@ -252,7 +252,10 @@
 
                 // Success — store email in sessionStorage and redirect
                 sessionStorage.setItem('demo_email', email);
-                window.location.href = '/dashboard/';
+                // Use an explicit HTTPS URL to avoid port 8080 being inherited
+                // from the original page URL. This ensures the user lands on
+                // the proper port 443 (HTTPS) regardless of how they got here.
+                window.location.href = 'https://demo.aegisgatesecurity.io/dashboard/';
             } catch (err) {
                 errorEl.textContent = err.message;
                 errorEl.classList.add('show');
