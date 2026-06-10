@@ -50,6 +50,11 @@ RATE_LIMIT = {}  # email -> [timestamps]
 RATE_LIMIT_WINDOW = 3600  # 1 hour
 RATE_LIMIT_MAX = 5  # Max 5 signups per email per hour
 
+# Access cookie (set on successful signup, checked by nginx)
+ACCESS_COOKIE_NAME = os.environ.get("AEGISGATE_ACCESS_COOKIE", "aegisgate_demo_access")
+ACCESS_COOKIE_MAX_AGE = int(os.environ.get("AEGISGATE_ACCESS_COOKIE_MAX_AGE", "86400"))  # 24h
+ACCESS_COOKIE_REQUIRED = os.environ.get("AEGISGATE_ACCESS_COOKIE_REQUIRED", "true").lower() == "true"
+
 # Email validation regex (basic)
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
@@ -197,6 +202,13 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_error(404, f"Not found: {path}")
 
+
+    def do_HEAD(self):
+        """Handle HEAD requests by delegating to do_GET (suppresses body)."""
+        # Just call do_GET — the base class handles body suppression
+        # for HEAD requests, and our GET returns proper headers.
+        self.do_GET()
+
     def do_POST(self):
         """Handle POST requests (signup submissions)."""
         path = self.path.split("?")[0]
@@ -246,10 +258,22 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
             self.send_json_error(500, "Could not store email. Please try again.")
             return
 
-        # Send success response
+        # Send success response WITH access cookie
+        # The cookie tells nginx to let this browser through to /dashboard/
+        # and /seed-data/ for the next 24 hours.
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
+        cookie_parts = [
+            f"{ACCESS_COOKIE_NAME}=1",
+            f"Path=/",
+            f"Max-Age={ACCESS_COOKIE_MAX_AGE}",
+            "HttpOnly",
+            "SameSite=Lax",
+        ]
+        if self.headers.get("X-Forwarded-Proto", "http") == "https" or            self.headers.get("X-Forwarded-Proto", "").endswith("https"):
+            cookie_parts.append("Secure")
+        self.send_header("Set-Cookie", "; ".join(cookie_parts))
         self.end_headers()
         response = json.dumps({
             "success": True,
