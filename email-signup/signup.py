@@ -77,6 +77,14 @@ TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverif
 # local dev/testing.
 TURNSTILE_FAIL_OPEN = os.environ.get("AEGISGATE_TURNSTILE_FAIL_OPEN", "false").lower() == "true"
 
+# Daily digest config (used by /admin/status to show digest state)
+# These mirror the constants in scripts/send_daily_digest.py
+RESEND_API_KEY = os.environ.get("AEGISGATE_RESEND_API_KEY", "")
+DIGEST_TO = os.environ.get("AEGISGATE_DIGEST_TO_EMAIL", "security@aegisgatesecurity.io")
+DIGEST_FROM = os.environ.get("AEGISGATE_DIGEST_FROM_EMAIL", "AegisGate Demo <onresend.dev>")
+DIGEST_ENABLED = os.environ.get("AEGISGATE_DIGEST_ENABLED", "false").lower() == "true"
+DIGEST_STATE_FILE = "/data/signups/digest_state.json"  # mirrors scripts/send_daily_digest.py:46
+
 # Email validation regex (basic)
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
@@ -332,8 +340,8 @@ class SignupHandler(http.server.BaseHTTPRequestHandler):
                 "to": DIGEST_TO,
                 "from": DIGEST_FROM,
                 "resend_key_configured": bool(RESEND_API_KEY),
-                "state_file": STATE_FILE,
-                "state_file_exists": os.path.exists(STATE_FILE),
+                "state_file": DIGEST_STATE_FILE,
+                "state_file_exists": os.path.exists(DIGEST_STATE_FILE),
             },
             "signups": {
                 "data_dir": DATA_DIR,
