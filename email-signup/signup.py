@@ -159,7 +159,7 @@ def store_email(email, ip_address, user_agent):
 
 
 def send_sendgrid_email(email, ip_address, user_agent):
-    """Send signup notification email via SendGrid API."""
+    """Send signup notification email via SendGrid API (legacy format, no template)."""
     if not SENDGRID_API_KEY:
         log("WARNING: SendGrid API key not configured, skipping email")
         return
@@ -170,19 +170,12 @@ def send_sendgrid_email(email, ip_address, user_agent):
         # SendGrid API endpoint
         url = "https://api.sendgrid.com/v3/mail/send"
         
-        # Build email payload (SendGrid format)
+        # Build email payload (SendGrid legacy format - no template_id needed)
         email_payload = {
             "personalizations": [
                 {
                     "to": [{"email": SENDGRID_TO_EMAIL}],
-                    "subject": f"New Demo Signup: {email}",
-                    "dynamic_template_data": {
-                        "signup_email": email,
-                        "ip_address": ip_address,
-                        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
-                        "source": "aegisgate-demo",
-                        "user_agent": user_agent
-                    }
+                    "subject": f"New Demo Signup: {email}"
                 }
             ],
             "from": {"email": SENDGRID_FROM_EMAIL},
