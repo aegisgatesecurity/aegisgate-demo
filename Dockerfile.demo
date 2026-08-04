@@ -50,6 +50,7 @@ RUN chmod +x /usr/local/bin/aegisgate-platform
 # Set version label for tracking
 LABEL aegisgate.version="3.6.2"
 LABEL aegisgate.demo.updated="2026-08-04"
+LABEL aegisgate.demo.css.version="v4.0-cache-bust-1"
 
 # Copy demo-specific files
 COPY seed-data/ /opt/aegisgate-demo/seed-data/
