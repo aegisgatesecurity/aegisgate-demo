@@ -45,9 +45,9 @@ EMAIL_STORAGE_DIR = os.environ.get("AEGISGATE_DEMO_DATA_DIR", "/data")
 EMAIL_FILE = os.path.join(EMAIL_STORAGE_DIR, "signups", "emails.csv")
 EMAIL_LOG = os.path.join(EMAIL_STORAGE_DIR, "signups", "access.log")
 WEBHOOK_URL = os.environ.get("EMAIL_WEBHOOK_URL", "")
-RESEND_API_KEY = os.environ.get("AEGISGATE_RESEND_API_KEY", "")
-RESEND_TO_EMAIL = os.environ.get("AEGISGATE_RESEND_TO_EMAIL", "security@aegisgatesecurity.io")
-RESEND_FROM_EMAIL = os.environ.get("AEGISGATE_RESEND_FROM_EMAIL", "onboarding@resend.dev")
+SENDGRID_API_KEY = os.environ.get("AEGISGATE_SENDGRID_API_KEY", "")
+SENDGRID_FROM_EMAIL = os.environ.get("AEGISGATE_SENDGRID_FROM_EMAIL", "demo@aegisgatesecurity.io")
+SENDGRID_TO_EMAIL = os.environ.get("AEGISGATE_SENDGRID_TO_EMAIL", "security@aegisgatesecurity.io")
 
 # Rate limiting (in-memory, simple)
 RATE_LIMIT = {}  # email -> [timestamps]
@@ -83,9 +83,8 @@ TURNSTILE_FAIL_OPEN = os.environ.get("AEGISGATE_TURNSTILE_FAIL_OPEN", "false").l
 
 # Daily digest config (used by /admin/status to show digest state)
 # These mirror the constants in scripts/send_daily_digest.py
-RESEND_API_KEY = os.environ.get("AEGISGATE_RESEND_API_KEY", "")
 DIGEST_TO = os.environ.get("AEGISGATE_DIGEST_TO_EMAIL", "security@aegisgatesecurity.io")
-DIGEST_FROM = os.environ.get("AEGISGATE_DIGEST_FROM_EMAIL", "AegisGate Demo <onresend.dev>")
+DIGEST_FROM = os.environ.get("AEGISGATE_DIGEST_FROM_EMAIL", "AegisGate Demo <demo@aegisgatesecurity.io>")
 DIGEST_ENABLED = os.environ.get("AEGISGATE_DIGEST_ENABLED", "false").lower() == "true"
 DIGEST_STATE_FILE = "/data/signups/digest_state.json"  # mirrors scripts/send_daily_digest.py:46
 
@@ -159,73 +158,76 @@ def store_email(email, ip_address, user_agent):
         return False
 
 
-def send_resend_email(email, ip_address, user_agent):
-    """Send signup notification email via Resend API."""
-    if not RESEND_API_KEY:
-        log("WARNING: Resend API key not configured, skipping email")
+def send_sendgrid_email(email, ip_address, user_agent):
+    """Send signup notification email via SendGrid API."""
+    if not SENDGRID_API_KEY:
+        log("WARNING: SendGrid API key not configured, skipping email")
         return
 
-    # Aggressive cleaning: remove ALL non-alphanumeric except underscore and hyphen
-    api_key_clean = ''.join(c for c in RESEND_API_KEY if c.isalnum() or c == '_')
-    
-    if not api_key_clean.startswith('re_'):
-        log(f"ERROR: API key doesn't start with 're_' after cleaning! Got: {api_key_clean[:10]}")
-        return
-    
     try:
-        # Use requests library for better TLS fingerprinting (bypasses Cloudflare bot detection)
         import requests
         
-        # Resend API endpoint
-        url = "https://api.resend.com/emails"
+        # SendGrid API endpoint
+        url = "https://api.sendgrid.com/v3/mail/send"
         
-        # Build email payload
+        # Build email payload (SendGrid format)
         email_payload = {
-            "from": RESEND_FROM_EMAIL,
-            "to": [RESEND_TO_EMAIL],
-            "subject": f"New Demo Signup: {email}",
-            "html": f"""<h2>New Demo Site Signup!</h2>
+            "personalizations": [
+                {
+                    "to": [{"email": SENDGRID_TO_EMAIL}],
+                    "subject": f"New Demo Signup: {email}",
+                    "dynamic_template_data": {
+                        "signup_email": email,
+                        "ip_address": ip_address,
+                        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                        "source": "aegisgate-demo",
+                        "user_agent": user_agent
+                    }
+                }
+            ],
+            "from": {"email": SENDGRID_FROM_EMAIL},
+            "content": [
+                {
+                    "type": "text/html",
+                    "value": f"""<h2>New Demo Site Signup!</h2>
 <p><strong>Email:</strong> {email}</p>
 <p><strong>IP Address:</strong> {ip_address}</p>
 <p><strong>Time:</strong> {datetime.datetime.utcnow().isoformat()}Z</p>
 <p><strong>Source:</strong> aegisgate-demo</p>
-<p><strong>User Agent:</strong> {user_agent}</p>""",
-            "tags": [
-                {"name": "type", "value": "signup_notification"},
-                {"name": "source", "value": "aegisgate-demo"}
+<p><strong>User Agent:</strong> {user_agent}</p>"""
+                }
             ]
         }
 
-        # Make request with requests library (better Cloudflare compatibility)
+        # Make request to SendGrid
         response = requests.post(
             url,
             json=email_payload,
             headers={
-                "Authorization": f"Bearer {api_key_clean}",
+                "Authorization": f"Bearer {SENDGRID_API_KEY}",
+                "Content-Type": "application/json",
                 "User-Agent": "AegisGate-Demo/1.0 (Production; +https://aegisgatesecurity.io)"
             },
             timeout=10
         )
         
-        # Check for success
-        response.raise_for_status()
-        result = response.json()
-        log(f"Resend email sent successfully: {result.get('id', 'unknown')}")
+        # SendGrid returns 202 on success (no body)
+        if response.status_code == 202:
+            log(f"SendGrid email sent successfully to {SENDGRID_TO_EMAIL}")
+        else:
+            log(f"ERROR: SendGrid email failed: HTTP {response.status_code} - {response.text[:200]}")
             
-    except requests.exceptions.HTTPError as e:
-        error_body = e.response.text if hasattr(e, 'response') and e.response else 'no body'
-        log(f"ERROR: Resend email failed: HTTP {e.response.status_code if e.response else '???'} - {error_body[:200]}")
     except requests.exceptions.RequestException as e:
-        log(f"ERROR: Resend email failed: {type(e).__name__}: {e}")
+        log(f"ERROR: SendGrid email failed: {type(e).__name__}: {e}")
     except Exception as e:
-        log(f"ERROR: Resend email failed: {type(e).__name__}: {e}")
+        log(f"ERROR: SendGrid email failed: {type(e).__name__}: {e}")
 
 
 def send_webhook(email, ip_address, user_agent):
-    """Send the signup to a configured webhook OR via Resend API (preferred)."""
-    # Try Resend API first (if configured)
-    if RESEND_API_KEY:
-        send_resend_email(email, ip_address, user_agent)
+    """Send the signup to a configured webhook OR via SendGrid API (preferred)."""
+    # Try SendGrid API first (if configured)
+    if SENDGRID_API_KEY:
+        send_sendgrid_email(email, ip_address, user_agent)
         return
     
     # Fallback to webhook (legacy)
