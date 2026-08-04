@@ -1,17 +1,15 @@
-# AegisGate Demo - Rebuilt Dockerfile
-# =====================================
+# AegisGate Demo - Production Dockerfile v3.6.2
+# ===============================================
 #
-# This Dockerfile builds the demo environment using a known-good base
-# (Alpine 3.19) and the platform binary we built locally. The previous
-# approach of using the platform's Docker image failed because:
-#   1. The 'main' tag on GHCR is stale (points to v1.3.7 from May 2026)
-#   2. The platform's base image has no working apk repos
+# This Dockerfile builds the demo environment with the CURRENT platform binary.
+# Updated: August 4, 2026 — Full aesthetic overhaul + v3.6.2 binary
 #
-# This approach:
-#   1. Uses Alpine 3.19 (well-maintained, has working apk repos)
-#   2. Copies the platform binary from the build context
-#   3. Installs nginx, python3, etc. via standard alpine packages
-#   4. Has the actual v3.3.0-beta.2-demo code (not the stale v1.3.7)
+# Features:
+#   1. Alpine 3.19 base (stable, working apk repos)
+#   2. AegisGate v3.6.2 platform binary (latest release)
+#   3. Corporate v4.0 aesthetic (Space Grotesk + Inter fonts, glass morphism)
+#   4. SendGrid email integration (direct API, no middleman)
+#   5. Nginx reverse proxy + Python signup server + Platform in demo mode
 
 # ============================================
 # Stage 1: Base image
@@ -44,10 +42,14 @@ ENV AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR=100
 ENV AEGISGATE_DEMO_RANDOM_SEED="aegisgate-demo-2026-06"
 ENV PYTHONUNBUFFERED=1
 
-# Copy the pre-built platform binary
-# This binary was built locally from the v3.3.0-beta.2 source
+# Copy the pre-built platform binary (v3.6.2)
+# This binary was built locally from the v3.6.2 source
 COPY aegisgate-platform /usr/local/bin/aegisgate-platform
 RUN chmod +x /usr/local/bin/aegisgate-platform
+
+# Set version label for tracking
+LABEL aegisgate.version="3.6.2"
+LABEL aegisgate.demo.updated="2026-08-04"
 
 # Copy demo-specific files
 COPY seed-data/ /opt/aegisgate-demo/seed-data/
