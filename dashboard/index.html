@@ -12,9 +12,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260804">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="logo.png">
+  
+  <!-- Critical inline styles for basic rendering -->
+  <style>
+    /* Ensure page is readable even if styles.css fails to load */
+    body{font-family:system-ui,-apple-system,sans-serif;line-height:1.6;margin:0;padding:0;background:#0a0c10;color:#f8fafc}
+    .site-header,.hero,.section{padding:2rem}
+    .container{max-width:1200px;margin:0 auto}
+    h1,h2,h3{font-weight:700;margin-bottom:1rem}
+    a{color:#38bdf8}
+  </style>
 </head>
 <body>
   <!-- ============================================ -->
