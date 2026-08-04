@@ -67,10 +67,18 @@ services:
       - key: EMAIL_WEBHOOK_URL
         sync: false  # Set this in the Render dashboard (not committed)
       # === Cloudflare Turnstile (anti-bot, optional) ===
-      - key: CF_TURNSTILE_SITE_KEY
-        sync: false
-      - key: CF_TURNSTILE_SECRET_KEY
-        sync: false
+      # Set to 'false' to disable Turnstile (recommended for testing)
+      - key: AEGISGATE_TURNSTILE_ENABLED
+        value: "false"  # Disable Turnstile for now - re-enable when ready
+      - key: AEGISGATE_TURNSTILE_SECRET_KEY
+        sync: false  # Set in Render dashboard if enabling Turnstile
+      # === Resend.com email integration ===
+      - key: AEGISGATE_RESEND_API_KEY
+        sync: false  # Set in Render dashboard (get from https://resend.com/api-keys)
+      - key: AEGISGATE_RESEND_TO_EMAIL
+        value: security@aegisgatesecurity.io
+      - key: AEGISGATE_RESEND_FROM_EMAIL
+        value: onboarding@resend.dev
     # Custom domain (auto-provisions SSL)
     # Per the official Render Blueprint spec at
     # https://render.com/schema/render.yaml.json:

@@ -179,7 +179,8 @@ if [ -d "/opt/aegisgate-demo/email-signup" ]; then
         cd /opt/aegisgate-demo/email-signup
         # Run the custom signup server (handles POST /signup/submit)
         # NOTE: signup.py uses argparse with --port flag, not positional argument
-        python3 signup.py --port 8083 >/dev/null 2>&1 &
+        # IMPORTANT: Logs go to stdout so they appear in Render dashboard
+        python3 signup.py --port 8083 &
         SIGNUP_PID=$!
         echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Email signup server PID: $SIGNUP_PID (custom handler)" | tee -a "$LOG_FILE"
     else
