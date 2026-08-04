@@ -97,9 +97,27 @@ This repo is configured for **Render.com Blueprint** deployment:
 3. Render auto-detects `render.yaml` and provisions the services
 4. Add custom domain: `demo.aegisgatesecurity.io`
 5. Render provisions Let's Encrypt SSL automatically
-6. **Email webhook**: configure `RENDER_EMAIL_WEBHOOK_URL` env var to forward signups to your email service (Mailgun, SendGrid, etc.)
+
+### 📧 Email Signup Configuration (REQUIRED)
+
+To receive signup notifications, you **must** set the `EMAIL_WEBHOOK_URL` environment variable:
+
+1. Go to Render.com → `aegisgate-demo` service → **Environment** tab
+2. Click **Add Environment Variable**
+3. Set:
+   - **Key:** `EMAIL_WEBHOOK_URL`
+   - **Value:** Your webhook endpoint (see options below)
+4. Click **Save** — Render will auto-redeploy
+
+**Webhook Options:**
+- **Testing:** https://webhook.site (get a temporary URL instantly)
+- **Production:** Mailgun, SendGrid, or your own HTTPS endpoint
+- **No-code:** Zapier, Make (connect to Slack, Google Sheets, CRM, etc.)
+
+**Without this set:** Signups are stored locally in the container (lost on restart) and **no notifications are sent**.
 
 See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for the full deployment guide.
+See [`EMAIL-BUG-FIX.md`](EMAIL-BUG-FIX.md) for troubleshooting.
 
 ## 🛡️ Safety & Sandboxing
 

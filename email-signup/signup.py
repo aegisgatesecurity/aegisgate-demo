@@ -45,6 +45,9 @@ EMAIL_STORAGE_DIR = os.environ.get("AEGISGATE_DEMO_DATA_DIR", "/data")
 EMAIL_FILE = os.path.join(EMAIL_STORAGE_DIR, "signups", "emails.csv")
 EMAIL_LOG = os.path.join(EMAIL_STORAGE_DIR, "signups", "access.log")
 WEBHOOK_URL = os.environ.get("EMAIL_WEBHOOK_URL", "")
+RESEND_API_KEY = os.environ.get("AEGISGATE_RESEND_API_KEY", "")
+RESEND_TO_EMAIL = os.environ.get("AEGISGATE_RESEND_TO_EMAIL", "security@aegisgatesecurity.io")
+RESEND_FROM_EMAIL = os.environ.get("AEGISGATE_RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
 # Rate limiting (in-memory, simple)
 RATE_LIMIT = {}  # email -> [timestamps]
@@ -156,8 +159,61 @@ def store_email(email, ip_address, user_agent):
         return False
 
 
+def send_resend_email(email, ip_address, user_agent):
+    """Send signup notification email via Resend API."""
+    if not RESEND_API_KEY:
+        log("WARNING: Resend API key not configured, skipping email")
+        return
+
+    try:
+        import urllib.request
+        
+        # Resend API endpoint
+        url = "https://api.resend.com/emails"
+        
+        # Build email payload
+        email_data = json.dumps({
+            "from": RESEND_FROM_EMAIL,
+            "to": [RESEND_TO_EMAIL],
+            "subject": f"New Demo Signup: {email}",
+            "html": f"""<h2>New Demo Site Signup!</h2>
+<p><strong>Email:</strong> {email}</p>
+<p><strong>IP Address:</strong> {ip_address}</p>
+<p><strong>Time:</strong> {datetime.datetime.utcnow().isoformat()}Z</p>
+<p><strong>Source:</strong> aegisgate-demo</p>
+<p><strong>User Agent:</strong> {user_agent}</p>""",
+            "tags": [
+                {"name": "type", "value": "signup_notification"},
+                {"name": "source", "value": "aegisgate-demo"}
+            ]
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            url,
+            data=email_data,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {RESEND_API_KEY}"
+            },
+            method="POST"
+        )
+
+        with urllib.request.urlopen(req, timeout=10) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            log(f"Resend email sent successfully: {result.get('id', 'unknown')}")
+            
+    except Exception as e:
+        log(f"ERROR: Resend email failed: {type(e).__name__}: {e}")
+
+
 def send_webhook(email, ip_address, user_agent):
-    """Send the signup to a configured webhook (e.g., Mailgun, SendGrid, Zapier)."""
+    """Send the signup to a configured webhook OR via Resend API (preferred)."""
+    # Try Resend API first (if configured)
+    if RESEND_API_KEY:
+        send_resend_email(email, ip_address, user_agent)
+        return
+    
+    # Fallback to webhook (legacy)
     if not WEBHOOK_URL:
         return
 
