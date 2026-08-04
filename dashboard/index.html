@@ -332,5 +332,13 @@
 
   <script src="dashboard.js"></script>
   <script src="playground.js"></script>
+  
+  <!-- Debug: Log when scripts load -->
+  <script>
+    console.log('[AegisGate Demo] dashboard.js loaded');
+    console.log('[AegisGate Demo] playground.js loaded');
+    console.log('[AegisGate Demo] DOM ready:', document.readyState);
+    console.log('[AegisGate Demo] CSS loaded:', !!document.querySelector('link[href*="styles.css"]'));
+  </script>
 </body>
 </html>
