@@ -46,7 +46,12 @@
   // 1. STATS GRID
   // ============================================
   async function renderStats() {
+    console.log('[Dashboard] Rendering stats...');
     const container = $('#stats-grid');
+    if (!container) {
+      console.error('[Dashboard] #stats-grid not found');
+      return;
+    }
     try {
       const [threats, tools, scan, metrics] = await Promise.all([
         fetchJSON('/seed-data/threats.json'),
@@ -109,8 +114,13 @@
   // 2. EU AI ACT COMPLIANCE SCAN
   // ============================================
   async function renderCompliance() {
+    console.log('[Dashboard] Rendering compliance...');
     const container = $('#compliance-overview');
     const controlsList = $('#controls-list');
+    if (!container) {
+      console.error('[Dashboard] #compliance-overview not found');
+      return;
+    }
     try {
       const scan = await fetchJSON('/seed-data/compliance-eu-ai-act.json');
       const meta = scan.scan_metadata || {};
@@ -178,7 +188,12 @@
   // 3. THREATS GRID
   // ============================================
   async function renderThreats() {
+    console.log('[Dashboard] Rendering threats...');
     const container = $('#threats-grid');
+    if (!container) {
+      console.error('[Dashboard] #threats-grid not found');
+      return;
+    }
     try {
       const threats = await fetchJSON('/seed-data/threats.json');
       container.innerHTML = threats.map((t) => {
@@ -213,7 +228,12 @@
   // 4. MCP TOOLS GRID
   // ============================================
   async function renderTools() {
+    console.log('[Dashboard] Rendering tools...');
     const container = $('#tools-grid');
+    if (!container) {
+      console.error('[Dashboard] #tools-grid not found');
+      return;
+    }
     try {
       const tools = await fetchJSON('/seed-data/mcp-tools.json');
       container.innerHTML = tools.map((t) => {
@@ -253,10 +273,19 @@
   // 5. METRICS / BAR CHART
   // ============================================
   async function renderMetrics() {
+    console.log('[Dashboard] Rendering metrics...');
     const summary = $('#metrics-summary');
     const chart = $('#bar-chart');
     const topTech = $('#top-techniques');
     const topCats = $('#threat-categories');
+    if (!summary) {
+      console.error('[Dashboard] #metrics-summary not found');
+      return;
+    }
+    if (!chart) {
+      console.error('[Dashboard] #bar-chart not found');
+      return;
+    }
     try {
       const metrics = await fetchJSON('/seed-data/dashboard-metrics.json');
       const s = metrics.summary || {};
@@ -395,16 +424,22 @@
   // INIT
   // ============================================
   async function init() {
+    console.log('[Dashboard] Starting initialization...');
     wireUI();
     // Render sections in parallel (each is independent)
-    await Promise.all([
-      renderStats(),
-      renderCompliance(),
-      renderThreats(),
-      renderTools(),
-      renderMetrics(),
-      loadPlaygroundData(),
-    ]);
+    try {
+      await Promise.all([
+        renderStats(),
+        renderCompliance(),
+        renderThreats(),
+        renderTools(),
+        renderMetrics(),
+        loadPlaygroundData(),
+      ]);
+      console.log('[Dashboard] All sections rendered successfully');
+    } catch (e) {
+      console.error('[Dashboard] Initialization error:', e);
+    }
     // Fire a custom event so playground.js can boot now
     document.dispatchEvent(new CustomEvent('dashboard:ready'));
   }
