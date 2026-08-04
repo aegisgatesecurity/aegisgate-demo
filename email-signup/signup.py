@@ -210,7 +210,11 @@ def send_resend_email(email, ip_address, user_agent):
             data=email_data,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": auth_header
+                "Authorization": auth_header,
+                "User-Agent": "AegisGate-Demo/1.0 (Production; +https://aegisgatesecurity.io)",
+                "Accept": "application/json",
+                "Accept-Encoding": "gzip, deflate",
+                "Connection": "keep-alive"
             },
             method="POST"
         )
