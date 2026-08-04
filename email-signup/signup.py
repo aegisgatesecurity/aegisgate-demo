@@ -166,26 +166,21 @@ def send_resend_email(email, ip_address, user_agent):
         return
 
     # Aggressive cleaning: remove ALL non-alphanumeric except underscore and hyphen
-    import re
-    # Extract only valid API key characters (re_ + alphanumeric)
     api_key_clean = ''.join(c for c in RESEND_API_KEY if c.isalnum() or c == '_')
-    
-    # Debug: Show byte-level representation
-    log(f"DEBUG: Original length={len(RESEND_API_KEY)}, Clean length={len(api_key_clean)}, bytes={[hex(ord(c)) for c in RESEND_API_KEY[:10]]}")
-    log(f"DEBUG: Clean key starts with: {api_key_clean[:8] if len(api_key_clean) >= 8 else 'too_short'}")
     
     if not api_key_clean.startswith('re_'):
         log(f"ERROR: API key doesn't start with 're_' after cleaning! Got: {api_key_clean[:10]}")
         return
     
     try:
-        import urllib.request
+        # Use requests library for better TLS fingerprinting (bypasses Cloudflare bot detection)
+        import requests
         
         # Resend API endpoint
         url = "https://api.resend.com/emails"
         
         # Build email payload
-        email_data = json.dumps({
+        email_payload = {
             "from": RESEND_FROM_EMAIL,
             "to": [RESEND_TO_EMAIL],
             "subject": f"New Demo Signup: {email}",
@@ -199,34 +194,31 @@ def send_resend_email(email, ip_address, user_agent):
                 {"name": "type", "value": "signup_notification"},
                 {"name": "source", "value": "aegisgate-demo"}
             ]
-        }).encode("utf-8")
+        }
 
-        # Build Authorization header explicitly
-        auth_header = f"Bearer {api_key_clean}"
-        log(f"DEBUG: Auth header length={len(auth_header)}, starts with: {auth_header[:15]}")
-
-        req = urllib.request.Request(
+        # Make request with requests library (better Cloudflare compatibility)
+        response = requests.post(
             url,
-            data=email_data,
+            json=email_payload,
             headers={
-                "Content-Type": "application/json",
-                "Authorization": auth_header,
-                "User-Agent": "AegisGate-Demo/1.0 (Production; +https://aegisgatesecurity.io)",
-                "Accept": "application/json",
-                "Accept-Encoding": "gzip, deflate",
-                "Connection": "keep-alive"
+                "Authorization": f"Bearer {api_key_clean}",
+                "User-Agent": "AegisGate-Demo/1.0 (Production; +https://aegisgatesecurity.io)"
             },
-            method="POST"
+            timeout=10
         )
-
-        with urllib.request.urlopen(req, timeout=10) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            log(f"Resend email sent successfully: {result.get('id', 'unknown')}")
+        
+        # Check for success
+        response.raise_for_status()
+        result = response.json()
+        log(f"Resend email sent successfully: {result.get('id', 'unknown')}")
             
+    except requests.exceptions.HTTPError as e:
+        error_body = e.response.text if hasattr(e, 'response') and e.response else 'no body'
+        log(f"ERROR: Resend email failed: HTTP {e.response.status_code if e.response else '???'} - {error_body[:200]}")
+    except requests.exceptions.RequestException as e:
+        log(f"ERROR: Resend email failed: {type(e).__name__}: {e}")
     except Exception as e:
         log(f"ERROR: Resend email failed: {type(e).__name__}: {e}")
-        # Extra debug on error
-        log(f"DEBUG: Error response: {e.read() if hasattr(e, 'read') else 'no body'}")
 
 
 def send_webhook(email, ip_address, user_agent):
