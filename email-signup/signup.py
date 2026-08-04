@@ -165,9 +165,18 @@ def send_resend_email(email, ip_address, user_agent):
         log("WARNING: Resend API key not configured, skipping email")
         return
 
-    # Debug: Log API key format (first 10 chars only for security)
-    api_key_stripped = RESEND_API_KEY.strip()
-    log(f"DEBUG: API key length={len(RESEND_API_KEY)}, stripped={len(api_key_stripped)}, starts_with={RESEND_API_KEY[:8] if len(RESEND_API_KEY) >= 8 else 'too_short'}")
+    # Aggressive cleaning: remove ALL non-alphanumeric except underscore and hyphen
+    import re
+    # Extract only valid API key characters (re_ + alphanumeric)
+    api_key_clean = ''.join(c for c in RESEND_API_KEY if c.isalnum() or c == '_')
+    
+    # Debug: Show byte-level representation
+    log(f"DEBUG: Original length={len(RESEND_API_KEY)}, Clean length={len(api_key_clean)}, bytes={[hex(ord(c)) for c in RESEND_API_KEY[:10]]}")
+    log(f"DEBUG: Clean key starts with: {api_key_clean[:8] if len(api_key_clean) >= 8 else 'too_short'}")
+    
+    if not api_key_clean.startswith('re_'):
+        log(f"ERROR: API key doesn't start with 're_' after cleaning! Got: {api_key_clean[:10]}")
+        return
     
     try:
         import urllib.request
@@ -192,12 +201,16 @@ def send_resend_email(email, ip_address, user_agent):
             ]
         }).encode("utf-8")
 
+        # Build Authorization header explicitly
+        auth_header = f"Bearer {api_key_clean}"
+        log(f"DEBUG: Auth header length={len(auth_header)}, starts with: {auth_header[:15]}")
+
         req = urllib.request.Request(
             url,
             data=email_data,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key_stripped}"
+                "Authorization": auth_header
             },
             method="POST"
         )
@@ -208,6 +221,8 @@ def send_resend_email(email, ip_address, user_agent):
             
     except Exception as e:
         log(f"ERROR: Resend email failed: {type(e).__name__}: {e}")
+        # Extra debug on error
+        log(f"DEBUG: Error response: {e.read() if hasattr(e, 'read') else 'no body'}")
 
 
 def send_webhook(email, ip_address, user_agent):
