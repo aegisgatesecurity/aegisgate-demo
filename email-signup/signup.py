@@ -165,6 +165,10 @@ def send_resend_email(email, ip_address, user_agent):
         log("WARNING: Resend API key not configured, skipping email")
         return
 
+    # Debug: Log API key format (first 10 chars only for security)
+    api_key_stripped = RESEND_API_KEY.strip()
+    log(f"DEBUG: API key length={len(RESEND_API_KEY)}, stripped={len(api_key_stripped)}, starts_with={RESEND_API_KEY[:8] if len(RESEND_API_KEY) >= 8 else 'too_short'}")
+    
     try:
         import urllib.request
         
@@ -193,7 +197,7 @@ def send_resend_email(email, ip_address, user_agent):
             data=email_data,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {RESEND_API_KEY}"
+                "Authorization": f"Bearer {api_key_stripped}"
             },
             method="POST"
         )
