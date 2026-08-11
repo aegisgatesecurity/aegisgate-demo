@@ -52,7 +52,7 @@ services:
       - key: AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR
         value: 100
       - key: AEGISGATE_DEMO_RANDOM_SEED
-        value: aegisgate-demo-2026-06
+        value: aegisgate-demo-2026-08
       # === Platform configuration ===
       - key: AEGISGATE_LOG_LEVEL
         value: info

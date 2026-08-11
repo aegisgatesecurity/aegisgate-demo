@@ -1,8 +1,8 @@
-# AegisGate Demo - Production Dockerfile v3.6.2
+# AegisGate Demo - Production Dockerfile v4.0.0
 # ===============================================
 #
 # This Dockerfile builds the demo environment with the CURRENT platform binary.
-# Updated: August 4, 2026 — Full aesthetic overhaul + v3.6.2 binary
+# Updated: August 10, 2026 — Updated to v4.0.0 binary
 #
 # Features:
 #   1. Alpine 3.19 base (stable, working apk repos)
@@ -42,14 +42,14 @@ ENV AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR=100
 ENV AEGISGATE_DEMO_RANDOM_SEED="aegisgate-demo-2026-06"
 ENV PYTHONUNBUFFERED=1
 
-# Copy the pre-built platform binary (v3.6.2)
-# This binary was built locally from the v3.6.2 source
+# Copy the pre-built platform binary (v4.0.0)
+# This binary was built locally from the v4.0.0 source
 COPY aegisgate-platform /usr/local/bin/aegisgate-platform
 RUN chmod +x /usr/local/bin/aegisgate-platform
 
 # Set version label for tracking
-LABEL aegisgate.version="3.6.2"
-LABEL aegisgate.demo.updated="2026-08-04"
+LABEL aegisgate.version="4.0.0"
+LABEL aegisgate.demo.updated="2026-08-10"
 LABEL aegisgate.demo.css.version="v4.0-cache-bust-1"
 
 # Copy demo-specific files
