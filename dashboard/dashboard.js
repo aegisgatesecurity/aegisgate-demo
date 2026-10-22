@@ -62,14 +62,18 @@
 
       const stats = [
         {
-          value: scan.scan_metadata?.total_controls ?? '82',
-          label: 'EU AI Act controls',
+          value: formatNumber(metrics.summary?.detection_patterns ?? 256),
+          label: 'detection patterns',
           accent: 'gold',
         },
         {
-          value: formatNumber(scan.scan_metadata?.passing ?? 0),
-          label: 'controls passing',
+          value: formatNumber(metrics.summary?.atlas_techniques_covered ?? 66),
+          label: 'ATLAS techniques covered',
           accent: 'accent',
+        },
+        {
+          value: formatNumber(metrics.summary?.compliance_frameworks ?? 30) + '+',
+          label: 'compliance frameworks',
         },
         {
           value: formatNumber(metrics.summary?.total_requests ?? 0),
@@ -86,12 +90,8 @@
           accent: 'accent',
         },
         {
-          value: threats.length,
-          label: 'pre-loaded threats',
-        },
-        {
-          value: tools.length,
-          label: 'sample MCP tools',
+          value: (metrics.summary?.ml_accuracy ?? 98.16) + '%',
+          label: 'ML accuracy (v15b)',
         },
         {
           value: (metrics.summary?.uptime_percentage ?? 0).toFixed(2) + '%',
@@ -296,11 +296,13 @@
       // 5a. Summary tiles
       const tiles = [
         { value: formatNumber(s.total_requests), label: 'requests' },
-        { value: formatNumber(s.total_threats_detected), label: 'threats' },
-        { value: formatNumber(s.total_users_active), label: 'users' },
-        { value: formatNumber(s.total_mcp_tool_calls), label: 'tool calls' },
+        { value: formatNumber(s.total_threats_detected), label: 'threats detected' },
+        { value: formatNumber(s.total_users_active), label: 'active users' },
+        { value: formatNumber(s.total_mcp_tool_calls), label: 'MCP tool calls' },
+        { value: formatNumber(s.total_a2a_messages ?? 0), label: 'A2A messages' },
+        { value: formatNumber(s.total_acp_sessions ?? 0), label: 'ACP sessions' },
         { value: s.p50_latency_ms + 'ms', label: 'p50 latency' },
-        { value: s.p95_latency_ms + 'ms', label: 'p95 latency' },
+        { value: s.p99_latency_ms + 'ms', label: 'p99 latency' },
       ];
       summary.innerHTML = tiles.map((t) => `
         <div class="metric-tile">

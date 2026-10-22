@@ -7,7 +7,7 @@
     "category": "filesystem",
     "risk_level": "low",
     "registered_by": "demo@aegisgatesecurity.io",
-    "registered_at": "2026-06-09T12:00:00Z",
+    "registered_at": "2026-10-22T12:00:00Z",
     "status": "active",
     "permissions": {
       "read": true,
@@ -22,9 +22,14 @@
         "input_schema": {
           "type": "object",
           "properties": {
-            "path": {"type": "string", "description": "Path to file (relative to sandbox)"}
+            "path": {
+              "type": "string",
+              "description": "Path to file (relative to sandbox)"
+            }
           },
-          "required": ["path"]
+          "required": [
+            "path"
+          ]
         },
         "rate_limit": "100 requests/hour",
         "max_file_size": "1MB"
@@ -35,7 +40,10 @@
         "input_schema": {
           "type": "object",
           "properties": {
-            "path": {"type": "string", "description": "Directory path (relative to sandbox)"}
+            "path": {
+              "type": "string",
+              "description": "Directory path (relative to sandbox)"
+            }
           }
         },
         "rate_limit": "100 requests/hour"
@@ -55,11 +63,14 @@
     "category": "network",
     "risk_level": "low",
     "registered_by": "demo@aegisgatesecurity.io",
-    "registered_at": "2026-06-09T12:05:00Z",
+    "registered_at": "2026-10-22T12:05:00Z",
     "status": "active",
     "permissions": {
       "network_egress": true,
-      "sandboxed_domains": ["duckduckgo.com", "html.duckduckgo.com"]
+      "sandboxed_domains": [
+        "duckduckgo.com",
+        "html.duckduckgo.com"
+      ]
     },
     "capabilities": [
       {
@@ -68,9 +79,14 @@
         "input_schema": {
           "type": "object",
           "properties": {
-            "query": {"type": "string", "description": "Search query"}
+            "query": {
+              "type": "string",
+              "description": "Search query"
+            }
           },
-          "required": ["query"]
+          "required": [
+            "query"
+          ]
         },
         "rate_limit": "20 requests/hour",
         "max_results": 5
@@ -89,7 +105,7 @@
     "category": "compute",
     "risk_level": "minimal",
     "registered_by": "demo@aegisgatesecurity.io",
-    "registered_at": "2026-06-09T12:10:00Z",
+    "registered_at": "2026-10-22T12:10:00Z",
     "status": "active",
     "permissions": {
       "network_egress": false,
@@ -103,9 +119,14 @@
         "input_schema": {
           "type": "object",
           "properties": {
-            "expression": {"type": "string", "description": "Arithmetic expression (e.g., '2 + 2 * 3')"}
+            "expression": {
+              "type": "string",
+              "description": "Arithmetic expression (e.g., '2 + 2 * 3')"
+            }
           },
-          "required": ["expression"]
+          "required": [
+            "expression"
+          ]
         },
         "rate_limit": "unlimited",
         "safety": "Expression is parsed and evaluated in a sandboxed environment. No function calls, no imports, no side effects."
@@ -124,7 +145,7 @@
     "category": "system",
     "risk_level": "minimal",
     "registered_by": "demo@aegisgatesecurity.io",
-    "registered_at": "2026-06-09T12:15:00Z",
+    "registered_at": "2026-10-22T12:15:00Z",
     "status": "active",
     "permissions": {
       "network_egress": false,
@@ -138,8 +159,20 @@
         "input_schema": {
           "type": "object",
           "properties": {
-            "timezone": {"type": "string", "description": "IANA timezone (e.g., 'UTC', 'America/New_York'). Default: UTC", "default": "UTC"},
-            "format": {"type": "string", "enum": ["iso8601", "unix", "human"], "default": "iso8601"}
+            "timezone": {
+              "type": "string",
+              "description": "IANA timezone (e.g., 'UTC', 'America/New_York'). Default: UTC",
+              "default": "UTC"
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "iso8601",
+                "unix",
+                "human"
+              ],
+              "default": "iso8601"
+            }
           }
         },
         "rate_limit": "unlimited"
@@ -158,7 +191,7 @@
     "category": "utility",
     "risk_level": "minimal",
     "registered_by": "demo@aegisgatesecurity.io",
-    "registered_at": "2026-06-09T12:20:00Z",
+    "registered_at": "2026-10-22T12:20:00Z",
     "status": "active",
     "permissions": {
       "network_egress": false,
@@ -172,9 +205,14 @@
         "input_schema": {
           "type": "object",
           "properties": {
-            "message": {"type": "string", "description": "Message to echo"}
+            "message": {
+              "type": "string",
+              "description": "Message to echo"
+            }
           },
-          "required": ["message"]
+          "required": [
+            "message"
+          ]
         },
         "rate_limit": "unlimited"
       }
