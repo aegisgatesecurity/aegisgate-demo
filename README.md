@@ -2,14 +2,14 @@
 
 > **Live, interactive demo of the [AegisGate Security Platform](https://github.com/aegisgatesecurity/aegisgate-platform)**
 >
-> **Status:** 🚧 In development (2026-06-09)
+> **Status:** ✅ Live (updated to v4.7.0, 2026-10-22)
 > **Live URL:** https://demo.aegisgatesecurity.io (after deploy)
 > **Hosting:** Render.com free tier
 > **License:** Apache 2.0
 
 This repository contains the **demo environment** for AegisGate — a separate, isolated deployment that:
 
-- Runs the [v3.3.0-beta.2 platform binary](https://github.com/aegisgatesecurity/aegisgate-platform/releases/tag/v3.3.0-beta.2) in `--mode=demo`
+- Runs the [v4.7.0 platform binary](https://github.com/aegisgatesecurity/aegisgate-platform/releases/tag/v4.7.0) in `--mode=demo`
 - Uses **synthetic, non-production data** (sample threats, sample MCP tools, sample compliance scans)
 - Has a **prominent DEMO MODE badge** so visitors know it's not production
 - Requires **email signup** (we use this to build a marketing list — no spam, just product updates)
@@ -23,7 +23,7 @@ This repository contains the **demo environment** for AegisGate — a separate, 
 |---|---|---|
 | **Purpose** | Production code | Demo deployment configuration |
 | **Audience** | Developers who self-host AegisGate | Prospects evaluating AegisGate |
-| **Container image** | Source of truth — `ghcr.io/aegisgatesecurity/aegisgate-platform:v3.3.0-beta.2` | Consumes the image, doesn't build it |
+| **Container image** | Source of truth — `ghcr.io/aegisgatesecurity/aegisgate-platform:v4.7.0` | Consumes the image, doesn't build it |
 | **Custom Dockerfile** | `Dockerfile` (in platform repo) | `Dockerfile.demo` (this repo) — adds demo mode |
 | **Custom binary flag** | Source of `--mode=demo` flag (in main.go) | Used in compose file to start demo |
 | **Sample data** | N/A | `seed-data/` directory with realistic examples |
@@ -78,7 +78,7 @@ git clone https://github.com/aegisgatesecurity/aegisgate-demo.git
 cd aegisgate-demo
 
 # 2. Pull the platform image
-docker pull ghcr.io/aegisgatesecurity/aegisgate-platform:v3.3.0-beta.2
+docker pull ghcr.io/aegisgatesecurity/aegisgate-platform:v4.7.0
 
 # 3. Start the demo
 docker compose -f docker-compose.demo.yml up -d

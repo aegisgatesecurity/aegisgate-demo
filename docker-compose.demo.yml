@@ -32,7 +32,7 @@ services:
       - AEGISGATE_MODE=demo
       - AEGISGATE_DEMO_RESET_HOURS=24
       - AEGISGATE_DEMO_MAX_REQUESTS_PER_HOUR=100
-      - AEGISGATE_DEMO_RANDOM_SEED=aegisgate-demo-2026-06
+      - AEGISGATE_DEMO_RANDOM_SEED=aegisgate-demo-2026-10
       # Platform config
       - AEGISGATE_LOG_LEVEL=info
       - AEGISGATE_TIER=developer
